@@ -34,7 +34,18 @@
 		}
 	];
 
-	const donationUrl = 'https://saweria.co/fandy11';
+	const supportLinks = [
+		{
+			label: 'Saweria',
+			icon: '/brand/saweria.png',
+			href: 'https://saweria.co/fandy11'
+		},
+		{
+			label: 'Sociabuzz',
+			icon: '/brand/sociabuzz.png',
+			href: 'https://sociabuzz.com/fandybuzz/tribe'
+		}
+	];
 </script>
 
 <svelte:head>
@@ -251,24 +262,20 @@
 					ilustrasi baru, server, dan hal-hal kecil yang membuat buketmu tetap gratis.
 				</p>
 				<div class="support-actions">
-					<a
-						class="btn btn-primary"
-						href={donationUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						use:magnet={{ strength: 7 }}
-					>
-						Dukung Petalbit
-						<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-							<path
-								d="M6 3h7v7M13 3L3 13"
-								stroke="currentColor"
-								stroke-width="1.6"
-								stroke-linecap="square"
-							/>
-						</svg>
-						<span class="sr-only">(terbuka di tab baru)</span>
-					</a>
+					{#each supportLinks as link, i}
+						<a
+							class="btn"
+							class:btn-primary={i === 0}
+							href={link.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							use:magnet={{ strength: 7 }}
+						>
+							<img class="support-icon" src={link.icon} alt="" width="18" height="18" />
+							{link.label}
+							<span class="sr-only">(terbuka di tab baru)</span>
+						</a>
+					{/each}
 					<span class="mono support-note">Seikhlasnya, tanpa kewajiban</span>
 				</div>
 			</div>
@@ -870,6 +877,14 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.8rem 1.2rem;
+	}
+
+	.support-icon {
+		display: block;
+		width: 18px;
+		height: 18px;
+		border-radius: 4px;
+		object-fit: contain;
 	}
 
 	.support-note {

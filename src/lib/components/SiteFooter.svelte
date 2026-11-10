@@ -25,8 +25,24 @@
 
 		<div class="links">
 			<h2 class="mono col-title">Tentang</h2>
-			<a href="https://saweria.co/fandy11" target="_blank" rel="noopener noreferrer">
+			<a
+				class="support-link"
+				href="https://saweria.co/fandy11"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<img src="/brand/saweria.png" alt="" width="15" height="15" loading="lazy" />
 				Saweria
+				<span class="sr-only">(terbuka di tab baru)</span>
+			</a>
+			<a
+				class="support-link"
+				href="https://sociabuzz.com/fandybuzz/tribe"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<img src="/brand/sociabuzz.png" alt="" width="15" height="15" loading="lazy" />
+				Sociabuzz
 				<span class="sr-only">(terbuka di tab baru)</span>
 			</a>
 			<p class="note">
@@ -101,6 +117,24 @@
 		text-decoration: none;
 		font-size: 0.88rem;
 		position: relative;
+	}
+
+	.support-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.support-link img {
+		display: block;
+		width: 15px;
+		height: 15px;
+		border-radius: 3px;
+		opacity: 0.9;
+	}
+
+	.support-link:hover img {
+		opacity: 1;
 	}
 
 	.links a::after {
