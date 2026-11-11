@@ -91,4 +91,10 @@
 			animation: none;
 		}
 	}
+
+	@media (hover: none) and (pointer: coarse) {
+		.track {
+			animation: none;
+		}
+	}
 </style>

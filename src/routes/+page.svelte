@@ -9,8 +9,7 @@
 	import { scrollProgress } from '$lib/actions/scroll-progress';
 	import { FLOWERS } from '$lib/data/flowers';
 
-	let progress = $state(0);
-	const visible = $derived(Math.max(1, Math.min(9, Math.ceil(progress * 9))));
+	let railCountEl: HTMLSpanElement;
 
 	const steps = [
 		{
@@ -75,7 +74,8 @@
 	class="hero"
 	use:scrollProgress={{
 		onProgress: (value) => {
-			progress = value;
+			const visible = Math.max(1, Math.min(9, Math.ceil(value * 9)));
+			if (railCountEl) railCountEl.textContent = `${String(visible).padStart(2, '0')} / 09`;
 		}
 	}}
 >
@@ -135,7 +135,7 @@
 		<div class="hero-rail" aria-hidden="true">
 			<span class="mono rail-label">tunnel bunga</span>
 			<span class="rail-track"><i></i></span>
-			<span class="mono rail-count">{String(visible).padStart(2, '0')} / 09</span>
+			<span class="mono rail-count" bind:this={railCountEl}>01 / 09</span>
 		</div>
 	</div>
 </section>
@@ -695,6 +695,19 @@
 
 		.doodle,
 		.tunnel-emoji .bob {
+			animation: none;
+		}
+	}
+
+	/* Lightweight hero on touch devices: keep the scroll-linked tunnel, drop
+	   extra infinite motion and decorative layers for smoother scrolling. */
+	@media (hover: none) and (pointer: coarse) {
+		.hero-petals,
+		.tunnel-emoji {
+			display: none;
+		}
+
+		.doodle {
 			animation: none;
 		}
 	}
