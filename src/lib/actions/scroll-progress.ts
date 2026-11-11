@@ -1,9 +1,12 @@
+import { scroll } from 'motion';
+
 /**
  * Scroll progress for a tall, sticky "stage" section.
  *
- * One shared passive listener and one rAF frame drive every registered section:
- * each writes `--p` (0 → 1) over its own scroll runway, so all the movement can
- * be expressed in CSS with `calc()` and stay on the compositor.
+ * Motion's scroll observer drives `--p` (0 → 1) over the section's runway so
+ * all movement can stay in CSS on the compositor. Where the browser supports
+ * ScrollTimeline, Motion can run the tracking off the main thread for a
+ * smoother feel on mobile.
  */
 
 type Options = {
@@ -13,98 +16,48 @@ type Options = {
 	offset?: number;
 };
 
-type Entry = {
-	node: HTMLElement;
-	offset: number;
-	onProgress?: (progress: number) => void;
-	top: number;
-	span: number;
-	last: number;
-};
-
-const entries = new Set<Entry>();
-let listening = false;
-let frame = 0;
-
 const reduced = () =>
 	typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function paint() {
-	frame = 0;
-	const y = window.scrollY;
-	for (const entry of entries) {
-		const raw = entry.span > 0 ? (y - entry.top - entry.offset) / entry.span : 1;
-		const p = Math.max(0, Math.min(1, raw));
-		entry.node.style.setProperty('--p', p.toFixed(4));
-		if (entry.onProgress && Math.abs(p - entry.last) > 0.04) {
-			entry.last = p;
-			entry.onProgress(p);
-		}
-	}
-}
-
-function schedule() {
-	if (!frame) frame = requestAnimationFrame(paint);
-}
-
-function measureAll() {
-	for (const entry of entries) {
-		entry.top = entry.node.getBoundingClientRect().top + window.scrollY;
-		entry.span = Math.max(1, entry.node.offsetHeight - window.innerHeight);
-	}
-	schedule();
-}
-
-function connect() {
-	if (listening) return;
-	listening = true;
-	window.addEventListener('scroll', schedule, { passive: true });
-	window.addEventListener('resize', measureAll, { passive: true });
-	window.addEventListener('orientationchange', measureAll, { passive: true });
-	document.fonts?.ready.then(measureAll).catch(() => {});
-}
-
-function disconnect() {
-	if (!listening) return;
-	listening = false;
-	window.removeEventListener('scroll', schedule);
-	window.removeEventListener('resize', measureAll);
-	window.removeEventListener('orientationchange', measureAll);
-	if (frame) cancelAnimationFrame(frame);
-	frame = 0;
-}
-
 export function scrollProgress(node: HTMLElement, options: Options = {}) {
-	const entry: Entry = {
-		node,
-		offset: options.offset ?? 0,
-		onProgress: options.onProgress,
-		top: 0,
-		span: 1,
-		last: -1
-	};
-
 	if (reduced()) {
 		node.style.setProperty('--p', '0.62');
+		options.onProgress?.(0.62);
 		return;
 	}
 
-	entries.add(entry);
-	connect();
-	entry.top = node.getBoundingClientRect().top + window.scrollY;
-	entry.span = Math.max(1, node.offsetHeight - window.innerHeight);
-	schedule();
+	let last = -1;
+	let onProgress = options.onProgress;
+	let offset = options.offset ?? 0;
+
+	const apply = (raw: number) => {
+		let p = raw;
+		if (offset > 0) {
+			const span = Math.max(1, node.offsetHeight - window.innerHeight);
+			p = Math.max(0, Math.min(1, (raw * span - offset) / Math.max(1, span - offset)));
+		}
+		node.style.setProperty('--p', p.toFixed(4));
+		if (onProgress && Math.abs(p - last) > 0.04) {
+			last = p;
+			onProgress(p);
+		}
+	};
+
+	// 0 when the section top reaches the viewport top, 1 when its bottom
+	// reaches the viewport bottom, matching the sticky runway.
+	const stop = scroll((progress) => apply(progress), {
+		target: node,
+		offset: ['start start', 'end end']
+	});
 
 	return {
 		update(next: Options = {}) {
-			entry.offset = next.offset ?? entry.offset;
-			entry.onProgress = next.onProgress ?? entry.onProgress;
-			schedule();
+			onProgress = next.onProgress ?? onProgress;
+			offset = next.offset ?? offset;
 		},
 		destroy() {
-			entries.delete(entry);
+			stop();
 			node.style.removeProperty('--p');
-			if (entries.size === 0) disconnect();
 		}
 	};
 }
