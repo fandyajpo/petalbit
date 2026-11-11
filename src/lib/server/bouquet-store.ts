@@ -47,11 +47,23 @@ export function isStorageConfigured(): boolean {
 	return db !== null;
 }
 
+/**
+ * In production a process-local store would hand out bouquet links that break
+ * on the next serverless invocation, so refuse to pretend the write worked.
+ */
+function requireRedis(): Redis | null {
+	const db = redis();
+	if (!db && !dev) {
+		throw new Error('Bouquet storage is not configured (missing Upstash credentials).');
+	}
+	return db;
+}
+
 const key = (id: string) => `bouquet:${id}`;
 
 export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 	const raw = JSON.stringify(bouquet);
-	const db = redis();
+	const db = requireRedis();
 
 	if (db) {
 		await db.set(key(bouquet.id), raw, { ex: BOUQUET_TTL_SECONDS });
@@ -65,7 +77,7 @@ export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 }
 
 export async function getBouquet(id: string): Promise<Bouquet | null> {
-	const db = redis();
+	const db = requireRedis();
 
 	if (db) {
 		// Upstash may return the parsed object or a raw string depending on client.

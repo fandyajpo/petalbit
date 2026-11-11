@@ -38,6 +38,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	return {
 		bouquet,
 		url: `${url.origin}/b/${bouquet.id}`,
+		ogImage: new URL('/og.png', url.origin).href,
 		createdLabel: `${timeFormat.format(created)} UTC`,
 		expiresLabel: `${timeFormat.format(expires)} UTC`,
 		expiresAt: expires.toISOString()

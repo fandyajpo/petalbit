@@ -5,6 +5,7 @@
 	import { reveal } from '$lib/actions/reveal';
 	import { countUp, magnet, splitText, spotlight, tilt } from '$lib/actions/motion';
 	import { FLOWERS } from '$lib/data/flowers';
+	import { page } from '$app/state';
 
 	const steps = [
 		{
@@ -59,7 +60,8 @@
 		content="Pick pixel flowers, drop a message, and share your bouquet with one link. Free, no login, here for seven days."
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="/og.png" />
+	<meta property="og:url" content={`${page.url.origin}/`} />
+	<meta property="og:image" content={`${page.url.origin}/og.png`} />
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 

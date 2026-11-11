@@ -50,7 +50,8 @@
 	<meta property="og:title" content={`${bouquet.sender} sent a bouquet for ${bouquet.recipient}`} />
 	<meta property="og:description" content={bouquet.message} />
 	<meta property="og:type" content="article" />
-	<meta property="og:image" content="/og.png" />
+	<meta property="og:url" content={data.url} />
+	<meta property="og:image" content={data.ogImage} />
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
