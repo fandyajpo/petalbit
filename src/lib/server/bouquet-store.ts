@@ -61,12 +61,58 @@ function requireRedis(): Redis | null {
 
 const key = (id: string) => `bouquet:${id}`;
 
+/**
+ * Bouquets never change after creation, so a short-lived process-local cache
+ * removes repeat Upstash round trips for the same link (a burst of opens, the
+ * share page plus its prefetches). Entries expire after 60s and never outlive
+ * the bouquet itself.
+ */
+type CacheEntry = { bouquet: Bouquet; cachedUntil: number };
+
+const CACHE_KEY = Symbol.for('petalbit.read-cache');
+const READ_CACHE_TTL_MS = 60_000;
+const READ_CACHE_MAX = 250;
+
+function readCache(): Map<string, CacheEntry> {
+	const globalWithCache = globalThis as typeof globalThis & {
+		[CACHE_KEY]?: Map<string, CacheEntry>;
+	};
+	if (!globalWithCache[CACHE_KEY]) globalWithCache[CACHE_KEY] = new Map();
+	return globalWithCache[CACHE_KEY];
+}
+
+function cacheGet(id: string): Bouquet | null {
+	const entry = readCache().get(id);
+	if (!entry) return null;
+	if (entry.cachedUntil <= Date.now()) {
+		readCache().delete(id);
+		return null;
+	}
+	return entry.bouquet;
+}
+
+function cacheSet(id: string, bouquet: Bouquet): void {
+	const expiresAt = Date.parse(bouquet.createdAt) + BOUQUET_TTL_SECONDS * 1000;
+	const cachedUntil = Number.isFinite(expiresAt)
+		? Math.min(Date.now() + READ_CACHE_TTL_MS, expiresAt)
+		: Date.now() + READ_CACHE_TTL_MS;
+	if (cachedUntil <= Date.now()) return;
+
+	const cache = readCache();
+	if (cache.size >= READ_CACHE_MAX) {
+		const oldest = cache.keys().next().value;
+		if (oldest !== undefined) cache.delete(oldest);
+	}
+	cache.set(id, { bouquet, cachedUntil });
+}
+
 export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 	const raw = JSON.stringify(bouquet);
 	const db = requireRedis();
 
 	if (db) {
 		await db.set(key(bouquet.id), raw, { ex: BOUQUET_TTL_SECONDS });
+		cacheSet(bouquet.id, bouquet);
 		return;
 	}
 
@@ -74,9 +120,13 @@ export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 		raw,
 		expiresAt: Date.now() + BOUQUET_TTL_SECONDS * 1000
 	});
+	cacheSet(bouquet.id, bouquet);
 }
 
 export async function getBouquet(id: string): Promise<Bouquet | null> {
+	const cached = cacheGet(id);
+	if (cached) return cached;
+
 	const db = requireRedis();
 
 	if (db) {
@@ -85,11 +135,14 @@ export async function getBouquet(id: string): Promise<Bouquet | null> {
 		if (!stored) return null;
 		if (typeof stored === 'string') {
 			try {
-				return JSON.parse(stored) as Bouquet;
+				const parsed = JSON.parse(stored) as Bouquet;
+				cacheSet(id, parsed);
+				return parsed;
 			} catch {
 				return null;
 			}
 		}
+		cacheSet(id, stored);
 		return stored;
 	}
 
@@ -100,7 +153,9 @@ export async function getBouquet(id: string): Promise<Bouquet | null> {
 		return null;
 	}
 	try {
-		return JSON.parse(entry.raw) as Bouquet;
+		const parsed = JSON.parse(entry.raw) as Bouquet;
+		cacheSet(id, parsed);
+		return parsed;
 	} catch {
 		return null;
 	}

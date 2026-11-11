@@ -14,7 +14,7 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
 	timeZone: 'UTC'
 });
 
-export const load: PageServerLoad = async ({ params, url }) => {
+export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
 	const parsed = bouquetIdSchema.safeParse(params.id);
 	if (!parsed.success) {
 		throw error(404, 'This bouquet was not found.');
@@ -34,6 +34,15 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 	const created = new Date(bouquet.createdAt);
 	const expires = new Date(created.getTime() + BOUQUET_TTL_SECONDS * 1000);
+	const secondsLeft = Math.floor((expires.getTime() - Date.now()) / 1000);
+
+	if (secondsLeft > 0) {
+		// A bouquet is immutable once saved, so the rendered page can sit in the
+		// CDN for a few minutes. The stale window never outlives the bouquet.
+		setHeaders({
+			'cache-control': `public, max-age=0, s-maxage=${Math.min(secondsLeft, 300)}, stale-while-revalidate=${Math.min(secondsLeft, 3600)}`
+		});
+	}
 
 	return {
 		bouquet,

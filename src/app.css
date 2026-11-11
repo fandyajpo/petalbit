@@ -661,3 +661,95 @@
 		transform: translate3d(-50%, 0, 0);
 	}
 }
+
+/* ------------------------------------------------------- page transitions */
+/* The page body slides while the header, footer and texture stay put. */
+main#top {
+	view-transition-name: page-main;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+}
+
+::view-transition-group(page-main) {
+	animation: none;
+}
+
+::view-transition-old(page-main) {
+	animation: 220ms var(--ease-out) both page-out-forward;
+}
+
+::view-transition-new(page-main) {
+	animation: 360ms var(--ease-out) both page-in-forward;
+}
+
+html[data-nav='back']::view-transition-old(page-main) {
+	animation-name: page-out-back;
+}
+
+html[data-nav='back']::view-transition-new(page-main) {
+	animation-name: page-in-back;
+}
+
+@keyframes page-in-forward {
+	from {
+		opacity: 0;
+		transform: translate3d(calc(var(--nav-shift) * -1), 0, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes page-out-forward {
+	from {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		opacity: 0;
+		transform: translate3d(var(--nav-shift), 0, 0);
+	}
+}
+
+@keyframes page-in-back {
+	from {
+		opacity: 0;
+		transform: translate3d(var(--nav-shift), 0, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes page-out-back {
+	from {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		opacity: 0;
+		transform: translate3d(calc(var(--nav-shift) * -1), 0, 0);
+	}
+}
+
+:root {
+	--nav-shift: 64px;
+}
+
+@media (max-width: 640px) {
+	:root {
+		--nav-shift: 42px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-old(page-main),
+	::view-transition-new(page-main) {
+		animation: none;
+	}
+}
