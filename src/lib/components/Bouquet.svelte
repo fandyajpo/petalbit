@@ -174,7 +174,56 @@
 
 	const wrapPaper = $derived(getBouquetPaper(paper));
 	const showRibbon = $derived(ribbon && wrapPaper.ribbon !== false);
-	const wrapStyle = $derived(wrapPaper.filter ? `filter:${wrapPaper.filter}` : '');
+	const wrapLayout = $derived(wrapPaper.layout ?? {});
+	const wrapFilter = $derived(
+		[wrapLayout.filter, wrapLayout.shadow].filter(Boolean).join(' ') || undefined
+	);
+
+	function layerStyle(
+		scale = 1,
+		x = 0,
+		y = 0,
+		rotate = 0,
+		filter?: string
+	): string {
+		return [
+			`--wrap-scale:${scale}`,
+			`--wrap-x:${x}%`,
+			`--wrap-y:${y}px`,
+			`--wrap-rot:${rotate}deg`,
+			filter ? `filter:${filter}` : ''
+		]
+			.filter(Boolean)
+			.join(';');
+	}
+
+	const paperStyle = $derived(
+		layerStyle(
+			wrapLayout.paperScale,
+			wrapLayout.paperX,
+			wrapLayout.paperY,
+			wrapLayout.paperRotate,
+			wrapFilter
+		)
+	);
+	const frontStyle = $derived(
+		layerStyle(
+			wrapLayout.frontScale,
+			wrapLayout.frontX,
+			wrapLayout.frontY,
+			wrapLayout.frontRotate,
+			wrapFilter
+		)
+	);
+	const ribbonStyle = $derived(
+		layerStyle(
+			wrapLayout.ribbonScale ?? wrapLayout.paperScale,
+			wrapLayout.paperX,
+			wrapLayout.ribbonY,
+			wrapLayout.paperRotate,
+			wrapFilter
+		)
+	);
 
 	const sprigs = [
 		{ key: 'left', angle: -36, scale: 1.0, shift: -7, z: 8 },
@@ -186,7 +235,7 @@
 	<div class="glow" aria-hidden="true"></div>
 	<div class="ground" aria-hidden="true"></div>
 
-	<div class="layer paper" aria-hidden="true" style={wrapStyle}>
+	<div class="layer paper" aria-hidden="true" style={paperStyle}>
 		<img src={wrapPaper.paperImage} alt="" width="1380" height="990" class="pixelated" />
 	</div>
 
@@ -245,12 +294,14 @@
 
 	<!-- Front face of the wrap: hides the stems below the fold, so the paper
 	     reads as something the bouquet sits inside, not behind. -->
-	<div class="layer paper-front" aria-hidden="true" style={wrapStyle}>
-		<img src={wrapPaper.frontImage} alt="" width="1380" height="990" class="pixelated" />
-	</div>
+	{#if !wrapLayout.hideFront}
+		<div class="layer paper-front" aria-hidden="true" style={frontStyle}>
+			<img src={wrapPaper.frontImage} alt="" width="1380" height="990" class="pixelated" />
+		</div>
+	{/if}
 
 	{#if showRibbon}
-		<div class="layer ribbon" aria-hidden="true" style={wrapStyle}>
+		<div class="layer ribbon" aria-hidden="true" style={ribbonStyle}>
 			<img src="/art/bouquet-ribbon.png" alt="" width="1380" height="990" class="pixelated" />
 		</div>
 	{/if}
@@ -294,8 +345,11 @@
 		left: 50%;
 		bottom: 1.5%;
 		width: 100%;
-		transform: translateX(-50%);
+		transform-origin: 50% 100%;
+		transform: translateX(-50%) translate(var(--wrap-x, 0%), var(--wrap-y, 0px))
+			rotate(var(--wrap-rot, 0deg)) scale(var(--wrap-scale, 1));
 		pointer-events: none;
+		transition: transform 520ms var(--ease-out, cubic-bezier(0.19, 1, 0.22, 1)), filter 400ms ease;
 	}
 
 	.layer img {
@@ -508,6 +562,10 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.layer {
+			transition: none;
+		}
+
 		.flower.animated {
 			animation: none;
 		}

@@ -6,6 +6,8 @@ export type Bouquet = {
 	flowers: string[];
 	/** Optional wrap style; defaults to the first bouquet paper when missing. */
 	paper?: string;
+	/** Optional animated backdrop; defaults to the first background when missing. */
+	background?: string;
 	createdAt: string;
 };
 

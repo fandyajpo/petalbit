@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { FLOWER_IDS, MAX_BOUQUET_FLOWERS } from '$lib/data/flowers';
+import { BACKGROUND_IDS, DEFAULT_BOUQUET_BACKGROUND } from '$lib/data/backgrounds';
 import { DEFAULT_BOUQUET_PAPER, PAPER_IDS } from '$lib/data/papers';
 import { fieldLimits } from '$lib/types';
 
@@ -31,7 +32,13 @@ export const bouquetInputSchema = z.object({
 			(value) => (value === '' || value === null || value === undefined ? undefined : value),
 			z.enum(PAPER_IDS as [string, ...string[]]).optional()
 		)
-		.default(DEFAULT_BOUQUET_PAPER)
+		.default(DEFAULT_BOUQUET_PAPER),
+	background: z
+		.preprocess(
+			(value) => (value === '' || value === null || value === undefined ? undefined : value),
+			z.enum(BACKGROUND_IDS as [string, ...string[]]).optional()
+		)
+		.default(DEFAULT_BOUQUET_BACKGROUND)
 });
 
 export type BouquetInput = z.infer<typeof bouquetInputSchema>;
@@ -54,6 +61,7 @@ export function validateBouquet(input: {
 	message: string;
 	flowers: string[];
 	paper?: string;
+	background?: string;
 }) {
 	const parsed = bouquetInputSchema.safeParse(input);
 	return {

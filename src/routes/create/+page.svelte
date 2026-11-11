@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Bouquet from '$lib/components/Bouquet.svelte';
+	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
 	import {
 		mEnter,
@@ -19,7 +20,17 @@
 		getFlower,
 		isFlowerId
 	} from '$lib/data/flowers';
-	import { BOUQUET_PAPERS, DEFAULT_BOUQUET_PAPER, getBouquetPaper } from '$lib/data/papers';
+	import {
+		BOUQUET_PAPERS,
+		DEFAULT_BOUQUET_PAPER,
+		getBouquetPaper,
+		type BouquetPaper
+	} from '$lib/data/papers';
+	import {
+		BOUQUET_BACKGROUNDS,
+		DEFAULT_BOUQUET_BACKGROUND,
+		getBouquetBackground
+	} from '$lib/data/backgrounds';
 	import { BOUQUET_TTL_SECONDS, fieldLimits } from '$lib/types';
 	import { validateBouquet } from '$lib/validation';
 
@@ -45,6 +56,7 @@
 	let dir = $state(1);
 	let selected = $state<string[]>(initialSelection());
 	let paper = $state(DEFAULT_BOUQUET_PAPER);
+	let background = $state(DEFAULT_BOUQUET_BACKGROUND);
 	let sender = $state('');
 	let recipient = $state('');
 	let message = $state('');
@@ -60,6 +72,7 @@
 	const atLimit = $derived(selected.length >= MAX_BOUQUET_FLOWERS);
 	const progress = $derived(step / 3);
 	const selectedPaper = $derived(getBouquetPaper(paper));
+	const selectedBackground = $derived(getBouquetBackground(background));
 
 	const expiryLabel = $derived(
 		result
@@ -126,7 +139,14 @@
 	}
 
 	function validateStepTwo(): boolean {
-		const check = validateBouquet({ sender, recipient, message, flowers: selected, paper });
+		const check = validateBouquet({
+			sender,
+			recipient,
+			message,
+			flowers: selected,
+			paper,
+			background
+		});
 		const keep: Record<string, string> = {};
 		for (const key of ['sender', 'recipient', 'message']) {
 			if (check.errors[key]) keep[key] = check.errors[key];
@@ -176,7 +196,14 @@
 
 	async function submit() {
 		if (submitting || result) return;
-		const check = validateBouquet({ sender, recipient, message, flowers: selected, paper });
+		const check = validateBouquet({
+			sender,
+			recipient,
+			message,
+			flowers: selected,
+			paper,
+			background
+		});
 		if (!check.success) {
 			errors = check.errors;
 			if (check.errors.flowers) {
@@ -197,7 +224,7 @@
 			const response = await fetch('/api/bouquets', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ sender, recipient, message, flowers: selected, paper })
+				body: JSON.stringify({ sender, recipient, message, flowers: selected, paper, background })
 			});
 			const data = await response.json().catch(() => null);
 
@@ -232,6 +259,7 @@
 		dir = 1;
 		selected = [];
 		paper = DEFAULT_BOUQUET_PAPER;
+		background = DEFAULT_BOUQUET_BACKGROUND;
 		sender = '';
 		recipient = '';
 		message = '';
@@ -243,6 +271,15 @@
 	function onSample(sample: string) {
 		message = sample;
 		clearError('message');
+	}
+
+	function paperSwatchStyle(option: BouquetPaper) {
+		const layout = option.layout ?? {};
+		const parts = [
+			`transform: translateY(8%) translate(${layout.paperX ?? 0}%, ${(layout.paperY ?? 0) * 0.4}px) rotate(${layout.paperRotate ?? 0}deg) scale(${Math.min(layout.paperScale ?? 1, 1.12)})`
+		];
+		if (layout.filter) parts.push(`filter:${layout.filter}`);
+		return parts.join(';');
 	}
 </script>
 
@@ -276,6 +313,7 @@
 	{#if result}
 		<div class="success" use:mEnter={{ y: 22, scale: 0.98, blur: 5 }}>
 			<div class="success-art">
+				<BouquetBackground background={background} />
 				<Bouquet flowers={selected} {paper} animate />
 				<span class="success-sticker selectable" use:mEnter={{ y: 8, delay: 0.18 }}>for {recipient.trim() || 'you'}</span>
 			</div>
@@ -416,10 +454,11 @@
 								<div class="paper-head">
 									<div>
 										<h3>Bouquet paper <span class="optional">(optional)</span></h3>
-										<p>Pick a wrap vibe. Skip it and we’ll use {getBouquetPaper(DEFAULT_BOUQUET_PAPER).name} by default.</p>
+										<p>Pick the wrap design, not just the color. Skip it and we’ll use {getBouquetPaper(DEFAULT_BOUQUET_PAPER).name} by default.</p>
 									</div>
 									<span class="paper-current">{selectedPaper.name}</span>
 								</div>
+								<p class="carousel-hint" aria-hidden="true">Swipe to see all wraps →</p>
 								<div class="paper-grid" role="radiogroup" aria-label="Bouquet paper">
 									{#each BOUQUET_PAPERS as option (option.id)}
 										<button
@@ -432,7 +471,42 @@
 											use:mPress={{ hoverScale: 1.02, pressScale: 0.98, lift: -1 }}
 										>
 											<span class="paper-swatch" aria-hidden="true">
-												<img src={option.paperImage} alt="" style={option.filter ? `filter:${option.filter}` : ''} />
+												<img src={option.paperImage} alt="" style={paperSwatchStyle(option)} />
+											</span>
+											<span class="paper-meta">
+												<span class="paper-name">{option.name}</span>
+												<span class="paper-desc">{option.description}</span>
+											</span>
+											<span class="paper-check" aria-hidden="true">
+												<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.7 9 10 3.2" stroke="currentColor" stroke-width="2.2" /></svg>
+											</span>
+										</button>
+									{/each}
+								</div>
+							</div>
+
+							<div class="bg-picker">
+								<div class="paper-head">
+									<div>
+										<h3>Background <span class="optional">(optional)</span></h3>
+										<p>Set the mood behind your bouquet. Skip it and we’ll use {getBouquetBackground(DEFAULT_BOUQUET_BACKGROUND).name} by default.</p>
+									</div>
+									<span class="paper-current">{selectedBackground.name}</span>
+								</div>
+								<p class="carousel-hint" aria-hidden="true">Swipe to see all moods →</p>
+								<div class="bg-grid" role="radiogroup" aria-label="Bouquet background">
+									{#each BOUQUET_BACKGROUNDS as option (option.id)}
+										<button
+											type="button"
+											class="bg-card"
+											class:selected={background === option.id}
+											role="radio"
+											aria-checked={background === option.id}
+											onclick={() => (background = option.id)}
+											use:mPress={{ hoverScale: 1.02, pressScale: 0.98, lift: -1 }}
+										>
+											<span class="bg-thumb" aria-hidden="true">
+												<BouquetBackground background={option.id} compact />
 											</span>
 											<span class="paper-meta">
 												<span class="paper-name">{option.name}</span>
@@ -586,6 +660,12 @@
 								</div>
 
 								<div class="review-row">
+									<span class="review-label">Mood</span>
+									<div class="review-value">{selectedBackground.name} <span class="review-soft">background</span></div>
+									<button type="button" class="edit" onclick={() => goTo(1)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
+								</div>
+
+								<div class="review-row">
 									<span class="review-label">From</span>
 									<div class="review-value selectable">{sender.trim()}</div>
 									<button type="button" class="edit" onclick={() => goTo(2)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
@@ -666,10 +746,11 @@
 					</div>
 
 					<div class="preview-art">
+						<BouquetBackground background={background} />
 						<Bouquet flowers={selected} {paper} fallback={false} greenery={selected.length > 0} />
 					</div>
 
-					{#key selected.join(',') + '|' + paper + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
+					{#key selected.join(',') + '|' + paper + '|' + background + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
 						<div class="preview-content" use:mEnter={{ y: 8, scale: 0.995, blur: 2, duration: 0.4 }}>
 							{#if selected.length === 0}
 								<p class="preview-empty">Pick some flowers and your bouquet will bloom right here.</p>
@@ -685,7 +766,7 @@
 						</div>
 					{/key}
 				</div>
-				<p class="preview-note">Exactly what they will see.</p>
+				<p class="preview-note">This is a preview. Pick your options below. ↓</p>
 			</aside>
 		</div>
 	{/if}
@@ -850,11 +931,13 @@
 	/* grid */
 	.studio-grid {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1.4rem;
 		align-items: start;
 	}
 
 	.panel {
+		min-width: 0;
 		border: 1px solid var(--color-rule);
 		border-radius: 14px;
 		background: var(--color-paper);
@@ -1415,6 +1498,74 @@
 		transform: scale(1);
 	}
 
+	.carousel-hint {
+		display: none;
+		margin: 0 0 0.5rem;
+		font-family: var(--font-mono);
+		font-size: 0.54rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-ink-faint);
+	}
+
+	.bg-picker {
+		margin-top: 1.1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--color-rule-soft);
+	}
+
+	.bg-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 0.55rem;
+	}
+
+	.bg-card {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		width: 100%;
+		text-align: left;
+		border: 1px solid var(--color-rule);
+		border-radius: 12px;
+		background: var(--color-paper);
+		padding: 0.45rem 0.55rem;
+		cursor: pointer;
+		transition: border-color 220ms ease, box-shadow 240ms ease, transform 220ms var(--ease-out);
+	}
+
+	.bg-card:hover {
+		border-color: rgb(25 17 16 / 0.3);
+		box-shadow: 0 8px 18px -14px rgb(25 17 16 / 0.4);
+	}
+
+	.bg-card.selected {
+		border-color: var(--color-ink);
+		box-shadow: 0 0 0 2px rgb(25 17 16 / 0.08);
+		background: var(--color-paper-warm);
+	}
+
+	.bg-thumb {
+		position: relative;
+		width: 46px;
+		height: 46px;
+		border-radius: 10px;
+		overflow: hidden;
+		border: 1px solid var(--color-rule-soft);
+		flex-shrink: 0;
+	}
+
+	.bg-card .paper-check {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+
+	.bg-card.selected .paper-check {
+		opacity: 1;
+		transform: scale(1);
+	}
+
 	.review-flowers {
 		list-style: none;
 		padding: 0;
@@ -1547,6 +1698,7 @@
 
 	/* preview */
 	.preview {
+		min-width: 0;
 		max-width: 350px;
 		margin: 0 auto;
 		width: 100%;
@@ -1598,7 +1750,17 @@
 	}
 
 	.preview-art {
-		margin-top: 0.4rem;
+		position: relative;
+		isolation: isolate;
+		margin: 0.4rem -0.25rem 0;
+		padding: 0.35rem 0.25rem 0;
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	.preview-art :global(.bouquet) {
+		position: relative;
+		z-index: 1;
 	}
 
 	.preview-empty {
@@ -1677,6 +1839,8 @@
 
 	.success-art {
 		position: relative;
+		isolation: isolate;
+		overflow: hidden;
 		border: 1px solid var(--color-rule);
 		border-radius: 14px;
 		background: linear-gradient(180deg, var(--color-paper), #f7ecdd);
@@ -1687,8 +1851,14 @@
 		width: 100%;
 	}
 
+	.success-art :global(.bouquet) {
+		position: relative;
+		z-index: 1;
+	}
+
 	.success-sticker {
 		position: absolute;
+		z-index: 2;
 		left: 50%;
 		bottom: -0.7rem;
 		transform: translateX(-50%) rotate(-2deg);
@@ -1764,13 +1934,55 @@
 		}
 	}
 
+	@media (max-width: 979px) {
+		.preview {
+			order: -1;
+			margin-bottom: 0.3rem;
+		}
+
+		.carousel-hint {
+			display: block;
+		}
+
+		.pick-grid,
+		.paper-grid,
+		.bg-grid {
+			display: grid;
+			grid-auto-flow: column;
+			grid-template-columns: none;
+			grid-auto-columns: minmax(150px, 64%);
+			gap: 0.5rem;
+			overflow-x: auto;
+			overflow-y: hidden;
+			scroll-snap-type: x mandatory;
+			scroll-padding-inline: 0.25rem;
+			-webkit-overflow-scrolling: touch;
+			scrollbar-width: none;
+			padding: 0.1rem 0.25rem 0.45rem;
+			margin-inline: -0.25rem;
+		}
+
+		.pick-grid::-webkit-scrollbar,
+		.paper-grid::-webkit-scrollbar,
+		.bg-grid::-webkit-scrollbar {
+			display: none;
+		}
+
+		.pick-grid > li,
+		.paper-grid > .paper-card,
+		.bg-grid > .bg-card {
+			scroll-snap-align: start;
+		}
+	}
+
 	@media (max-width: 470px) {
 		.pick-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 0.45rem;
+			grid-auto-columns: minmax(132px, 46%);
+			gap: 0.4rem;
 		}
-		.paper-grid {
-			grid-template-columns: 1fr;
+		.paper-grid,
+		.bg-grid {
+			grid-auto-columns: minmax(220px, 84%);
 		}
 		.pick-art {
 			height: 104px;

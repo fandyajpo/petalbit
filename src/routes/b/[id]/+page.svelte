@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import Bouquet from '$lib/components/Bouquet.svelte';
+	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
 	import FloatingPetals from '$lib/components/FloatingPetals.svelte';
 	import { getFlower } from '$lib/data/flowers';
+	import { mEnter, mPress } from '$lib/actions/studio-motion';
 	import { splitText } from '$lib/actions/motion';
 	import { reveal } from '$lib/actions/reveal';
 
@@ -15,6 +17,7 @@
 	const initial = $derived(bouquet.recipient.trim().charAt(0).toUpperCase() || 'B');
 
 	let remaining = $state('');
+	let opened = $state(false);
 
 	onMount(() => {
 		const end = new Date(data.expiresAt).getTime();
@@ -63,9 +66,44 @@
 		<p class="sub">Sent by {bouquet.sender} · {data.createdLabel}</p>
 	</header>
 
-	<div class="share-grid">
-		<div class="art-wrap reveal reveal-zoom" use:reveal={{ delay: 80 }}>
+	{#if !opened}
+		<div class="open-stage">
+			<div class="open-card" use:mEnter={{ y: 22, scale: 0.98, blur: 5 }}>
+				<button
+					type="button"
+					class="open-art"
+					onclick={() => (opened = true)}
+					aria-label="Open your bouquet"
+					use:mPress={{ hoverScale: 1.015, pressScale: 0.985, lift: -2 }}
+				>
+					<BouquetBackground background={bouquet.background} />
+					<span class="envelope" aria-hidden="true">
+						<span class="envelope-body"></span>
+						<span class="envelope-flap"></span>
+						<span class="envelope-label">{initial}</span>
+						<span class="envelope-seal">
+							<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
+						</span>
+					</span>
+				</button>
+
+				<p class="open-eyebrow">{bouquet.sender} sent you something</p>
+				<h2 class="open-title">For {bouquet.recipient}.</h2>
+				<p class="open-sub">Tap the envelope to open the bouquet and read the note.</p>
+
+				<button type="button" class="btn btn-primary open-btn" onclick={() => (opened = true)} use:mPress>
+					Open bouquet
+					<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	{:else}
+	<div class="share-grid" use:mEnter={{ y: 16, scale: 0.99, blur: 4 }}>
+		<div class="art-wrap reveal reveal-zoom">
 			<div class="art">
+				<BouquetBackground background={bouquet.background} />
 				<span class="art-seal" aria-hidden="true">
 					<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
 				</span>
@@ -74,7 +112,7 @@
 			<p class="art-note">Built pixel by pixel, just for you.</p>
 		</div>
 
-		<article class="letter reveal" use:reveal={{ delay: 160 }}>
+		<article class="letter" use:mEnter={{ y: 14, delay: 0.08, blur: 3 }}>
 			<div class="letter-top">
 				<span class="letter-mark">{initial}</span>
 				<span class="letter-label">A little note</span>
@@ -114,7 +152,7 @@
 		</article>
 	</div>
 
-	<div class="share-cta reveal" use:reveal>
+	<div class="share-cta" use:mEnter={{ y: 12, delay: 0.16, blur: 3 }}>
 		<div>
 			<p class="cta-title">Wanna send your own bouquet?</p>
 			<p class="cta-sub">Three steps, one minute, no account.</p>
@@ -126,6 +164,7 @@
 			</svg>
 		</a>
 	</div>
+	{/if}
 </section>
 
 <style>
@@ -432,6 +471,131 @@
 		}
 	}
 
+	/* ------------------------------------------------------------ open stage */
+	.open-stage {
+		position: relative;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		padding: clamp(0.4rem, 2vw, 1.2rem) 0 clamp(1.6rem, 4vw, 2.6rem);
+	}
+
+	.open-card {
+		width: 100%;
+		max-width: 430px;
+		text-align: center;
+	}
+
+	.open-art {
+		position: relative;
+		display: block;
+		width: 100%;
+		aspect-ratio: 1 / 0.94;
+		border: 1px solid var(--color-rule);
+		border-radius: 18px;
+		background: var(--color-paper);
+		padding: 0;
+		overflow: hidden;
+		cursor: pointer;
+		box-shadow: 0 18px 40px -30px rgb(25 17 16 / 0.5);
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.open-art:focus-visible {
+		outline: 2px solid var(--color-rose);
+		outline-offset: 3px;
+	}
+
+	.envelope {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: min(68%, 250px);
+		aspect-ratio: 3 / 2;
+		transform: translate(-50%, -50%) rotate(-1.5deg);
+		filter: drop-shadow(0 12px 22px rgb(64 32 24 / 0.18));
+	}
+
+	.envelope-body {
+		position: absolute;
+		inset: 0;
+		border: 1.5px solid rgb(74 48 38 / 0.55);
+		border-radius: 6px;
+		background: linear-gradient(160deg, #fdf4e6, #f3e2ca 65%, #eed9bd);
+	}
+
+	.envelope-flap {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		height: 58%;
+		background: linear-gradient(180deg, #f8ead4, #efdcbe);
+		clip-path: polygon(0 0, 100% 0, 50% 100%);
+		border-radius: 6px 6px 0 0;
+	}
+
+	.envelope-label {
+		position: absolute;
+		left: 50%;
+		top: 58%;
+		transform: translate(-50%, -50%);
+		font-family: var(--font-display);
+		font-size: clamp(1.6rem, 4vw, 2.2rem);
+		font-style: italic;
+		color: rgb(109 29 41 / 0.45);
+	}
+
+	.envelope-seal {
+		position: absolute;
+		left: 50%;
+		bottom: -12%;
+		transform: translateX(-50%);
+		display: grid;
+		place-items: center;
+		width: 2.6rem;
+		height: 2.6rem;
+		border-radius: 50%;
+		border: 1.5px solid var(--color-ink);
+		background: var(--color-blush);
+		box-shadow: 2px 2px 0 0 rgb(25 17 16 / 0.25);
+		overflow: hidden;
+	}
+
+	.envelope-seal img {
+		width: 100%;
+		height: 100%;
+	}
+
+	.open-eyebrow {
+		margin-top: 1.2rem;
+		font-family: var(--font-mono);
+		font-size: 0.56rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-ink-faint);
+	}
+
+	.open-title {
+		margin-top: 0.45rem;
+		font-size: clamp(1.9rem, 5vw, 2.7rem);
+		letter-spacing: -0.035em;
+		line-height: 1;
+	}
+
+	.open-sub {
+		margin: 0.6rem auto 1.1rem;
+		max-width: 34ch;
+		font-size: 0.86rem;
+		line-height: 1.65;
+		color: var(--color-ink-soft);
+	}
+
+	.open-btn {
+		margin: 0 auto;
+	}
+
 	/* ============================================================ 2026 revamp */
 	.share {
 		max-width: 1120px;
@@ -463,6 +627,11 @@
 		background: linear-gradient(180deg, var(--color-paper), #f7ecdd);
 		box-shadow: var(--shadow-soft);
 		padding: 0.7rem 0.5rem 0.35rem;
+	}
+
+	.art :global(.bouquet) {
+		position: relative;
+		z-index: 1;
 	}
 
 	.art-seal {
