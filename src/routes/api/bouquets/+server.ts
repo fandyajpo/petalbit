@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { bouquetInputSchema, fieldErrors } from '$lib/validation';
 import { createBouquetId, saveBouquet } from '$lib/server/bouquet-store';
+import { notifyNewBouquet } from '$lib/server/discord';
 import type { Bouquet } from '$lib/types';
 
 const MAX_BODY_BYTES = 8 * 1024;
@@ -52,6 +53,10 @@ export const POST: RequestHandler = async ({ request, url }) => {
 			{ status: 503 }
 		);
 	}
+
+	// Fire and forget: the bouquet is already saved, so a failed notification
+	// must never slow down or fail the response.
+	void notifyNewBouquet(bouquet, url.origin);
 
 	return json(
 		{

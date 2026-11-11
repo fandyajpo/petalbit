@@ -45,6 +45,7 @@ Copy `.env.example` to `.env` and fill in the two Upstash values:
 ```
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+DISCORD_BOUQUET_WEBHOOK_URL=   # optional, see below
 ```
 
 1. Create a free database at [upstash.com](https://upstash.com).
@@ -55,6 +56,20 @@ UPSTASH_REDIS_REST_TOKEN=
 Both are read through `$env/dynamic/private` in
 `src/lib/server/bouquet-store.ts`, so they are never bundled into client code.
 Never commit `.env`.
+
+### Discord notifications (optional)
+
+Set `DISCORD_BOUQUET_WEBHOOK_URL` to a Discord webhook URL and every created
+bouquet posts a short summary to that channel: sender, recipient, message,
+flowers, bouquet id, and when it expires.
+
+- The delivery is fire-and-forget. It runs after the bouquet is saved and never
+  blocks or fails the API response; failures are only logged.
+- The webhook URL is read through `$env/dynamic/private` in
+  `src/lib/server/discord.ts`, so it stays on the server. Leave it unset and no
+  requests are made.
+- To rotate it, edit the webhook in Discord (or create a new one) and update the
+  environment variable in Vercel.
 
 ## Scripts
 
@@ -193,6 +208,7 @@ type Bouquet = {
 2. Import the project in Vercel — the SvelteKit preset is detected automatically.
 3. Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` under
    **Settings → Environment Variables** for Production and Preview.
+   Add `DISCORD_BOUQUET_WEBHOOK_URL` there too if you want bouquet pings.
 4. Deploy. `npm run build` uses `@sveltejs/adapter-vercel` and emits the server
    route for the API plus the prerendered pages.
 

@@ -4,7 +4,6 @@
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
-	import FloatingPetals from '$lib/components/FloatingPetals.svelte';
 	import { getFlower } from '$lib/data/flowers';
 	import { mEnter, mPress } from '$lib/actions/studio-motion';
 	import { splitText } from '$lib/actions/motion';
@@ -56,9 +55,9 @@
 </svelte:head>
 
 <section class="share">
-	<div class="share-glow" aria-hidden="true"></div>
-	<div class="share-petals" aria-hidden="true">
-		<FloatingPetals count={5} />
+	<div class="page-bg" aria-hidden="true">
+		<BouquetBackground background={bouquet.background} />
+		<span class="page-bg-scrim"></span>
 	</div>
 
 	<header class="share-head reveal" use:reveal>
@@ -77,7 +76,6 @@
 					aria-label="Open your bouquet"
 					use:mPress={{ hoverScale: 1.015, pressScale: 0.985, lift: -2 }}
 				>
-					<BouquetBackground background={bouquet.background} />
 					<span class="envelope" aria-hidden="true">
 						<span class="envelope-body"></span>
 						<span class="envelope-flap"></span>
@@ -104,7 +102,6 @@
 	<div class="share-grid" use:mEnter={{ y: 16, scale: 0.99, blur: 4 }}>
 		<div class="art-wrap" use:mEnter={{ y: 18, scale: 0.97, blur: 5, delay: 0.06 }}>
 			<div class="art">
-				<BouquetBackground background={bouquet.background} />
 				<span class="art-seal" aria-hidden="true">
 					<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
 				</span>
@@ -171,27 +168,34 @@
 <style>
 	.share {
 		position: relative;
+		isolation: isolate;
 		max-width: 1120px;
 		margin: 0 auto;
 		padding: clamp(1.8rem, 4vw, 3rem) 1.25rem 1rem;
 	}
 
-	.share-glow {
-		position: absolute;
-		inset: -8rem -10% auto;
-		height: 34rem;
-		background:
-			radial-gradient(ellipse at 30% 20%, rgb(242 214 212 / 0.75), transparent 55%),
-			radial-gradient(ellipse at 80% 10%, rgb(233 168 179 / 0.3), transparent 50%);
-		pointer-events: none;
+	.page-bg {
+		position: fixed;
+		inset: 0;
 		z-index: -1;
+		overflow: hidden;
+		pointer-events: none;
+		background: var(--color-paper);
 	}
 
-	.share-petals {
+	.page-bg :global(.scene-bg) {
+		border-radius: 0;
+	}
+
+	.page-bg-scrim {
 		position: absolute;
 		inset: 0;
-		z-index: 0;
-		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			rgb(247 240 231 / 0.28),
+			rgb(247 240 231 / 0.56) 45%,
+			rgb(247 240 231 / 0.8)
+		);
 	}
 
 	.share-head {
@@ -492,13 +496,13 @@
 		display: block;
 		width: 100%;
 		aspect-ratio: 1 / 0.94;
-		border: 1px solid var(--color-rule);
+		border: 1px solid rgb(25 17 16 / 0.16);
 		border-radius: 18px;
-		background: var(--color-paper);
+		background: rgb(253 247 238 / 0.5);
 		padding: 0;
 		overflow: hidden;
 		cursor: pointer;
-		box-shadow: 0 18px 40px -30px rgb(25 17 16 / 0.5);
+		box-shadow: 0 22px 50px -32px rgb(25 17 16 / 0.55);
 		touch-action: manipulation;
 		-webkit-tap-highlight-color: transparent;
 	}
@@ -601,10 +605,6 @@
 	.share {
 		max-width: 1120px;
 		overflow: clip;
-	}
-
-	.share-glow {
-		background: radial-gradient(ellipse 46% 42% at 28% 16%, rgb(236 207 202 / 0.62), transparent 60%);
 	}
 
 	.share-head h1 {
