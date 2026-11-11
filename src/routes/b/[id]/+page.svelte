@@ -102,7 +102,7 @@
 		</div>
 	{:else}
 	<div class="share-grid" use:mEnter={{ y: 16, scale: 0.99, blur: 4 }}>
-		<div class="art-wrap reveal reveal-zoom">
+		<div class="art-wrap" use:mEnter={{ y: 18, scale: 0.97, blur: 5, delay: 0.06 }}>
 			<div class="art">
 				<BouquetBackground background={bouquet.background} />
 				<span class="art-seal" aria-hidden="true">
