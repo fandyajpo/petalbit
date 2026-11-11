@@ -5,10 +5,10 @@
 
 	const status = $derived(page.status);
 	const message = $derived(
-		page.error?.message ?? 'Terjadi kesalahan yang tidak terduga. Coba muat ulang halaman ini.'
+		page.error?.message ?? 'Something unexpected went sideways. Try refreshing this page.'
 	);
 	const heading = $derived(
-		status === 404 ? 'Buket ini sudah pergi.' : 'Sesuatu layu di sini.'
+		status === 404 ? 'This bouquet ghosted.' : 'Something wilted here.'
 	);
 </script>
 
@@ -26,17 +26,17 @@
 		</div>
 
 		<div class="oops-copy reveal" use:reveal={{ delay: 120 }}>
-			<p class="eyebrow">Halaman tidak ditemukan</p>
+			<p class="eyebrow">{status === 404 ? 'Page not found' : 'Uh oh'}</p>
 			<h1 use:splitText={{ step: 55 }}>{heading}</h1>
 			<p class="msg">{message}</p>
 			<p class="hint">
-				Buket Petalbit hanya bertahan tujuh hari. Kalau tautan ini kamu terima lebih lama dari itu,
-				buketnya memang sudah menghilang.
+				{status === 404
+					? 'This link might be wrong, or the bouquet already dipped after 7 days.'
+					: 'Give it another shot, or head back home and start fresh.'}
 			</p>
-
 			<div class="actions">
-				<a class="btn btn-primary" href="/create">Buat buket baru</a>
-				<a class="btn" href="/">Kembali ke beranda</a>
+				<a class="btn btn-primary" href="/">Back home</a>
+				<a class="btn" href="/create">Make a bouquet</a>
 			</div>
 		</div>
 	</div>
@@ -44,14 +44,17 @@
 
 <style>
 	.oops {
-		max-width: 980px;
+		max-width: 960px;
 		margin: 0 auto;
-		padding: clamp(2.5rem, 7vw, 5rem) 1.25rem;
+		padding: clamp(2rem, 5vw, 4rem) 1.25rem;
+		min-height: calc(100svh - 10rem);
+		display: grid;
+		align-items: center;
 	}
 
 	.oops-inner {
 		display: grid;
-		gap: clamp(1.8rem, 4vw, 3rem);
+		gap: clamp(1.6rem, 4vw, 3rem);
 		align-items: center;
 	}
 
@@ -59,67 +62,57 @@
 		position: relative;
 		display: grid;
 		place-items: center;
-		border: 2px solid var(--color-ink);
-		border-radius: 3px;
-		background:
-			radial-gradient(circle at 50% 35%, #fffaf3, var(--color-paper) 65%, #f3e6d8);
-		box-shadow:
-			7px 7px 0 0 var(--color-cream-deep),
-			7px 7px 0 2px var(--color-ink);
-		padding: 2rem 1rem 1.4rem;
-		min-height: 260px;
-		overflow: hidden;
+		padding: 1.6rem 1rem 2rem;
 	}
 
 	.oops-art img {
-		height: 170px;
-		width: auto;
-		filter: grayscale(0.55) contrast(0.95);
-		transform: rotate(-6deg) translateY(6px);
+		width: min(70%, 240px);
+		height: auto;
+		transform: rotate(12deg) translateY(8px);
+		filter: saturate(0.85);
 		opacity: 0.9;
-	}
-
-	.floor {
-		position: absolute;
-		left: 50%;
-		bottom: 1.1rem;
-		width: 62%;
-		height: 10px;
-		transform: translateX(-50%);
-		background-image: radial-gradient(rgb(43 31 34 / 0.18) 1px, transparent 1.2px);
-		background-size: 4px 4px;
 	}
 
 	.code {
 		position: absolute;
-		top: 0.9rem;
-		left: 1rem;
+		inset: auto 0 36% 0;
+		text-align: center;
 		font-family: var(--font-display);
-		font-size: 2.4rem;
-		font-weight: 600;
-		letter-spacing: -0.04em;
-		color: var(--color-blush);
+		font-size: clamp(5rem, 18vw, 9rem);
 		line-height: 1;
+		padding-top: 0.06em;
+		letter-spacing: -0.06em;
+		color: rgb(25 17 16 / 0.06);
+		pointer-events: none;
+	}
+
+	.floor {
+		position: absolute;
+		bottom: 1.2rem;
+		left: 50%;
+		width: 52%;
+		height: 10%;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse at center, rgb(124 42 60 / 0.18), transparent 70%);
 	}
 
 	.oops-copy h1 {
 		margin-top: 0.7rem;
-		font-size: clamp(2rem, 5vw, 3rem);
+		font-size: clamp(2.2rem, 5vw, 3.2rem);
 	}
 
 	.msg {
-		margin-top: 0.9rem;
-		font-size: 0.95rem;
+		margin-top: 1rem;
+		font-size: 0.94rem;
 		line-height: 1.75;
 		color: var(--color-ink-soft);
 		max-width: 46ch;
+		overflow-wrap: anywhere;
 	}
 
 	.hint {
-		margin-top: 0.7rem;
-		font-family: var(--font-display);
-		font-style: italic;
-		font-size: 0.82rem;
+		margin-top: 0.9rem;
+		font-size: 0.78rem;
 		line-height: 1.7;
 		color: var(--color-ink-faint);
 		max-width: 46ch;

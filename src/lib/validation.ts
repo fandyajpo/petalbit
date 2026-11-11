@@ -4,32 +4,32 @@ import { fieldLimits } from '$lib/types';
 
 export const bouquetInputSchema = z.object({
 	sender: z
-		.string({ required_error: 'Nama pengirim wajib diisi.' })
+		.string({ required_error: 'Your name is required.' })
 		.trim()
-		.min(fieldLimits.sender.min, 'Nama pengirim minimal 2 karakter.')
-		.max(fieldLimits.sender.max, 'Nama pengirim maksimal 32 karakter.'),
+		.min(fieldLimits.sender.min, 'Name needs at least 2 characters.')
+		.max(fieldLimits.sender.max, 'Name can be max 32 characters.'),
 	recipient: z
-		.string({ required_error: 'Nama penerima wajib diisi.' })
+		.string({ required_error: 'Recipient name is required.' })
 		.trim()
-		.min(fieldLimits.recipient.min, 'Nama penerima minimal 2 karakter.')
-		.max(fieldLimits.recipient.max, 'Nama penerima maksimal 32 karakter.'),
+		.min(fieldLimits.recipient.min, 'Recipient name needs at least 2 characters.')
+		.max(fieldLimits.recipient.max, 'Recipient name can be max 32 characters.'),
 	message: z
-		.string({ required_error: 'Pesan spesial wajib diisi.' })
+		.string({ required_error: 'A message is required.' })
 		.trim()
-		.min(fieldLimits.message.min, 'Tulis pesan setidaknya 3 karakter.')
-		.max(fieldLimits.message.max, 'Pesan maksimal 280 karakter.'),
+		.min(fieldLimits.message.min, 'Write at least 3 characters.')
+		.max(fieldLimits.message.max, 'Message can be max 280 characters.'),
 	flowers: z
 		.array(z.enum(FLOWER_IDS as [string, ...string[]]), {
-			required_error: 'Pilih setidaknya satu bunga.'
+			required_error: 'Pick at least one flower.'
 		})
-		.min(1, 'Pilih setidaknya satu bunga.')
-		.max(MAX_BOUQUET_FLOWERS, `Maksimal ${MAX_BOUQUET_FLOWERS} jenis bunga per buket.`)
-		.refine((ids) => new Set(ids).size === ids.length, 'Setiap bunga hanya bisa dipilih sekali.')
+		.min(1, 'Pick at least one flower.')
+		.max(MAX_BOUQUET_FLOWERS, `Max ${MAX_BOUQUET_FLOWERS} flowers per bouquet.`)
+		.refine((ids) => new Set(ids).size === ids.length, 'Each flower can only be picked once.')
 });
 
 export type BouquetInput = z.infer<typeof bouquetInputSchema>;
 
-export const bouquetIdSchema = z.string().regex(/^[a-z0-9]{8,24}$/, 'ID buket tidak valid.');
+export const bouquetIdSchema = z.string().regex(/^[a-z0-9]{8,24}$/, 'Invalid bouquet ID.');
 
 /** Flatten Zod issues into `{ field: message }` for the form UI. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

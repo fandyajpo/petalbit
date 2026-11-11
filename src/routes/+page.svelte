@@ -1,40 +1,35 @@
 <script lang="ts">
-	import FlowerTunnel from '$lib/components/FlowerTunnel.svelte';
-	import FloatingPetals from '$lib/components/FloatingPetals.svelte';
+	import Bouquet from '$lib/components/Bouquet.svelte';
 	import FlowerTicker from '$lib/components/FlowerTicker.svelte';
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import { countUp, magnet, splitText, spotlight, tilt } from '$lib/actions/motion';
-	import { parallax } from '$lib/actions/parallax';
-	import { scrollProgress } from '$lib/actions/scroll-progress';
 	import { FLOWERS } from '$lib/data/flowers';
-
-	let railCountEl: HTMLSpanElement;
 
 	const steps = [
 		{
 			n: '01',
-			meta: 'Pilih',
-			title: 'Pilih bunga favoritmu',
-			text: 'Sembilan bunga pixel menunggu untuk dirangkai. Pilih yang paling cocok dengan perasaanmu hari ini.',
+			meta: 'Pick',
+			title: 'Pick your blooms',
+			text: 'Choose up to seven pixel stems from nine species. Mix the vibe that feels most you.',
 			art: '/art/flowers/mawar.png',
-			alt: 'Ilustrasi pixel mawar'
+			alt: 'Pixel rose illustration'
 		},
 		{
 			n: '02',
-			meta: 'Tulis',
-			title: 'Tambahkan nama dan pesan',
-			text: 'Tulis untuk siapa, dari siapa, dan kalimat kecil yang ingin kamu titipkan pada kelopaknya.',
+			meta: 'Write',
+			title: 'Drop your message',
+			text: 'Add who it is for, who it is from, and the little note you want them to keep (for a bit).',
 			art: '/art/flowers/tulip.png',
-			alt: 'Ilustrasi pixel tulip'
+			alt: 'Pixel tulip illustration'
 		},
 		{
 			n: '03',
-			meta: 'Kirim',
-			title: 'Bagikan buket digitalmu',
-			text: 'Satu tautan unik, siap dikirim lewat chat. Buketmu akan mekar selama tujuh hari ke depan.',
+			meta: 'Send',
+			title: 'Send the link',
+			text: 'Get one shareable link and shoot your shot in the chat. Your bouquet stays live for seven days.',
 			art: '/art/flowers/daisy.png',
-			alt: 'Ilustrasi pixel daisy'
+			alt: 'Pixel daisy illustration'
 		}
 	];
 
@@ -53,15 +48,15 @@
 </script>
 
 <svelte:head>
-	<title>Petalbit: Little pixels, lovely flowers.</title>
+	<title>Petalbit: pixel bouquets that hit different</title>
 	<meta
 		name="description"
-		content="Petalbit adalah generator buket bunga digital gratis. Pilih bunga pixel, tulis pesan spesial, lalu bagikan buketmu lewat satu tautan. Bertahan 7 hari."
+		content="Petalbit lets you build and send a free pixel flower bouquet with a personal note. No account needed, just vibes for seven days."
 	/>
-	<meta property="og:title" content="Petalbit: Little pixels, lovely flowers." />
+	<meta property="og:title" content="Petalbit: pixel bouquets that hit different" />
 	<meta
 		property="og:description"
-		content="Rangkai buket bunga digital untuk seseorang yang spesial. Gratis, tanpa akun, dan bertahan 7 hari."
+		content="Pick pixel flowers, drop a message, and share your bouquet with one link. Free, no login, here for seven days."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content="/og.png" />
@@ -70,72 +65,46 @@
 
 <IntroLoader />
 
-<section
-	class="hero"
-	use:scrollProgress={{
-		onProgress: (value) => {
-			const visible = Math.max(1, Math.min(9, Math.ceil(value * 9)));
-			if (railCountEl) railCountEl.textContent = `${String(visible).padStart(2, '0')} / 09`;
-		}
-	}}
->
-	<div class="hero-stage">
-		<FlowerTunnel />
+<section class="hero">
+	<div class="shell hero-inner">
+		<div class="hero-copy">
+			<p class="sticker hero-badge">
+				<span class="emoji" aria-hidden="true">🌷</span>
+				digital bouquets · send the vibe
+			</p>
 
-		<div class="hero-scrim" aria-hidden="true"></div>
+			<p class="brand-kicker">Petalbit</p>
 
-		<div class="hero-petals" aria-hidden="true">
-			<FloatingPetals count={5} />
-		</div>
+			<h1 class="display-xl" use:splitText={{ delay: 120, step: 62 }}>
+				Pixel flowers that <em>actually hit</em><span class="doodle" aria-hidden="true">✿</span>
+			</h1>
 
-		<div class="shell hero-inner">
-			<div class="hero-copy">
-				<p class="sticker hero-badge">
-					<span class="emoji" aria-hidden="true">🌷</span>
-					buket digital · siap kirim
-				</p>
+			<p class="body-lg hero-lede">
+				Build a cute pixel bouquet, drop a lil message, and send it with one link. Free, no
+				account, and it blooms for seven days <span aria-hidden="true">💌</span>
+			</p>
 
-				<h1 class="display-xl" use:splitText={{ delay: 120, step: 62 }}>
-					Little pixels,<br /><em>lovely flowers</em><span class="doodle" aria-hidden="true">✿</span>
-				</h1>
-
-				<p class="body-lg hero-lede">
-					Rangkai buket bunga pixel buat orang yang bikin kamu senyum-senyum sendiri. Pilih
-					bunganya, titip pesannya, lalu kirim lewat satu tautan <span aria-hidden="true">💌</span>
-				</p>
-
-				<div class="cta-row">
-					<a class="btn btn-primary btn-hero" href="/create" use:magnet={{ strength: 9 }}>
-						Buat buket
-						<span class="btn-emoji" aria-hidden="true">💐</span>
-					</a>
-					<a class="link-arrow" href="#bunga">Lihat koleksi</a>
-				</div>
-
-				<ul class="hero-chips">
-					<li><span aria-hidden="true">🌷</span> 9 spesies</li>
-					<li><span aria-hidden="true">💐</span> 7 tangkai</li>
-					<li><span aria-hidden="true">⏳</span> 7 hari</li>
-					<li><span aria-hidden="true">✨</span> gratis, tanpa akun</li>
-				</ul>
+			<div class="cta-row">
+				<a class="btn btn-primary btn-hero" href="/create" use:magnet={{ strength: 9 }}>
+					Make a bouquet
+					<span class="btn-emoji" aria-hidden="true">💐</span>
+				</a>
+				<a class="link-arrow" href="#bunga">Peep the lineup</a>
 			</div>
+
+			<ul class="hero-chips">
+				<li><span aria-hidden="true">🌷</span> 9 species</li>
+				<li><span aria-hidden="true">💐</span> 7 stems max</li>
+				<li><span aria-hidden="true">⏳</span> 7 days</li>
+				<li><span aria-hidden="true">✨</span> free, no login</li>
+			</ul>
 		</div>
 
-		<span class="tunnel-emoji emoji-tulip" aria-hidden="true" use:parallax={{ speed: -0.04, max: 40 }}>
-			<span class="bob">🌷</span>
-		</span>
-		<span class="tunnel-emoji emoji-letter" aria-hidden="true" use:parallax={{ speed: 0.06, max: 40 }}>
-			<span class="bob">💌</span>
-		</span>
-
-		<p class="hero-end" aria-live="off">
-			Sembilan bunga sudah mekar. Waktunya merangkai punyamu.
-		</p>
-
-		<div class="hero-rail" aria-hidden="true">
-			<span class="mono rail-label">tunnel bunga</span>
-			<span class="rail-track"><i></i></span>
-			<span class="mono rail-count" bind:this={railCountEl}>01 / 09</span>
+		<div class="hero-art reveal reveal-zoom" use:reveal={{ delay: 80 }}>
+			<div class="art-card" use:tilt={{ max: 4 }}>
+				<Bouquet />
+			</div>
+			<p class="art-note mono">lowkey iconic, fully pixel</p>
 		</div>
 	</div>
 </section>
@@ -145,11 +114,10 @@
 <section class="section steps" id="cara-kerja">
 	<div class="shell">
 		<header class="section-head reveal" use:reveal>
-			<p class="eyebrow">Cara kerja</p>
-			<h2 class="display-lg" use:splitText={{ step: 50 }}>Tiga langkah, satu buket.</h2>
+			<p class="eyebrow">How it works</p>
+			<h2 class="display-lg" use:splitText={{ step: 50 }}>Three steps, one bouquet.</h2>
 			<p class="section-sub">
-				Prosesnya sesederhana memilih bunga di toko sungguhan. Bedanya, semuanya bisa selesai
-				dalam satu menit.
+				No overthinking. Pick flowers, say the thing, and send it off in like a minute.
 			</p>
 		</header>
 
@@ -180,17 +148,17 @@
 		<div class="notice reveal reveal-zoom" use:reveal>
 			<div class="notice-figure">
 				<span class="notice-num" use:countUp={{ to: 7, duration: 1400 }}>0</span>
-				<span class="mono">hari</span>
+				<span class="mono">days</span>
 			</div>
 			<div class="notice-copy">
-				<p class="eyebrow">Sekilas info</p>
-				<h2>Indahnya karena sementara.</h2>
+				<p class="eyebrow">Heads up</p>
+				<h2>Here for a good time, not a long time.</h2>
 				<p>
-					Buket ini hanya bertahan selama 7 hari setelah dibuat. Setelah itu, buket dan pesanmu
-					akan menghilang secara otomatis, tanpa pengingat dan tanpa sisa.
+					Your bouquet and message stick around for 7 days after you make it. After that, they
+					peace out automatically. No reminders, no traces.
 				</p>
 				<p class="notice-small">
-					Justru itu yang membuatnya terasa seperti bunga sungguhan: datang, mekar, lalu tenang.
+					Kinda like real flowers: they show up, bloom, and dip. That is the whole charm.
 				</p>
 			</div>
 		</div>
@@ -201,14 +169,14 @@
 	<div class="shell">
 		<header class="section-head collection-head reveal" use:reveal>
 			<div>
-				<p class="eyebrow">Koleksi</p>
-				<h2 class="display-lg" use:splitText={{ step: 45 }}>Sembilan bunga, satu buket.</h2>
+				<p class="eyebrow">The lineup</p>
+				<h2 class="display-lg" use:splitText={{ step: 45 }}>Nine flowers, endless vibes.</h2>
 			</div>
 			<div class="collection-aside">
 				<p class="section-sub">
-					Pilih hingga tujuh tangkai. Klik salah satu untuk langsung mulai merangkai.
+					Pick up to seven stems. Tap any flower to start building your bouquet.
 				</p>
-				<span class="mono">10 kartu · 9 spesies</span>
+				<span class="mono">10 cards · 9 species</span>
 			</div>
 		</header>
 
@@ -218,7 +186,7 @@
 					<a
 						class="flower-card spot"
 						href={`/create?bunga=${flower.id}`}
-						aria-label={`Buat buket dengan ${flower.name}`}
+						aria-label={`Make a bouquet with ${flower.name}`}
 						use:spotlight
 						use:tilt={{ max: 4 }}
 					>
@@ -226,7 +194,7 @@
 						<div class="card-art">
 							<img
 								src={flower.image}
-								alt={`Ilustrasi pixel ${flower.name}`}
+								alt={`Pixel art of ${flower.name}`}
 								width="450"
 								height="696"
 								loading="lazy"
@@ -261,11 +229,11 @@
 			</div>
 
 			<div class="support-copy">
-				<p class="eyebrow">Dukungan opsional</p>
-				<h2 class="display-lg">Suka dengan Petalbit?</h2>
+				<p class="eyebrow">Optional support</p>
+				<h2 class="display-lg">Vibing with Petalbit?</h2>
 				<p>
-					Bantu kami terus menumbuhkan lebih banyak bunga digital. Setiap dukungan dipakai untuk
-					ilustrasi baru, server, dan hal-hal kecil yang membuat buketmu tetap gratis.
+					Help us keep the pixel garden growing. Your support goes to new art, servers, and the
+					little things that keep bouquets free for everyone.
 				</p>
 				<div class="support-actions">
 					{#each supportLinks as link, i}
@@ -279,10 +247,10 @@
 						>
 							<img class="support-icon" src={link.icon} alt="" width="18" height="18" />
 							{link.label}
-							<span class="sr-only">(terbuka di tab baru)</span>
+							<span class="sr-only">(opens in a new tab)</span>
 						</a>
 					{/each}
-					<span class="mono support-note">Seikhlasnya, tanpa kewajiban</span>
+					<span class="mono support-note">Totally optional, no pressure</span>
 				</div>
 			</div>
 		</div>
@@ -323,66 +291,38 @@
 
 	/* ------------------------------------------------------------------ hero */
 	.hero {
-		--p: 0;
 		position: relative;
-		height: 235vh;
-		height: 235svh;
-	}
-
-	.hero-stage {
-		position: sticky;
-		top: 0;
-		display: grid;
-		place-items: center;
-		height: 100vh;
-		height: 100svh;
-		min-height: 600px;
+		padding-block: clamp(4.8rem, 10vh, 7rem) clamp(2.8rem, 6vh, 4rem);
 		overflow: clip;
-		isolation: isolate;
-		padding-block: clamp(4.2rem, 9vh, 6rem) clamp(4rem, 10vh, 5.6rem);
 	}
 
-	/* A soft paper window in the middle of the tunnel, so the headline always
-	   sits on calm ground no matter which blooms are passing behind it. */
-	.hero-scrim {
+	.hero::before {
+		content: '';
 		position: absolute;
-		inset: 0;
-		z-index: 2;
+		inset: -10% -20% auto;
+		height: 80%;
+		background:
+			radial-gradient(ellipse 50% 60% at 20% 40%, rgb(236 207 202 / 0.45), transparent 70%),
+			radial-gradient(ellipse 40% 50% at 78% 30%, rgb(223 154 166 / 0.18), transparent 70%);
 		pointer-events: none;
-		background: radial-gradient(
-			ellipse 34% 38% at 50% 50%,
-			rgb(241 232 218 / 0.6) 0%,
-			rgb(241 232 218 / 0.46) 55%,
-			rgb(241 232 218 / 0.14) 82%,
-			transparent 100%
-		);
-	}
-
-	.hero-petals {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
+		z-index: 0;
 	}
 
 	.hero-inner {
 		position: relative;
-		z-index: 3;
+		z-index: 1;
 		display: grid;
-		place-items: center;
-		width: 100%;
+		gap: clamp(2rem, 5vw, 3.5rem);
+		align-items: center;
 	}
 
 	.hero-copy {
 		display: grid;
-		justify-items: center;
-		text-align: center;
-		max-width: 41rem;
-		opacity: calc(1 - var(--p, 0) * 0.16);
-		transform: translate3d(0, calc(var(--p, 0) * -16px), 0);
+		justify-items: start;
+		gap: 0.2rem;
+		max-width: 38rem;
 	}
 
-	/* ------------------------------------------------------------- stickers */
 	.sticker {
 		display: inline-flex;
 		align-items: center;
@@ -412,9 +352,17 @@
 		line-height: 1;
 	}
 
-	/* ---------------------------------------------------------------- copy */
+	.brand-kicker {
+		margin-top: 1rem;
+		font-family: var(--font-display);
+		font-size: clamp(1rem, 2vw, 1.2rem);
+		font-style: italic;
+		letter-spacing: 0.02em;
+		color: var(--color-rose-deep);
+	}
+
 	h1 {
-		margin: 1.05rem 0 0;
+		margin: 0.2rem 0 0;
 		font-weight: 500;
 	}
 
@@ -426,8 +374,6 @@
 		isolation: isolate;
 	}
 
-	/* Marker stroke behind the italic line, so the serif keeps the romance and
-	   the page stops reading like a spec sheet. */
 	h1 em::after {
 		content: '';
 		position: absolute;
@@ -470,16 +416,15 @@
 	}
 
 	.hero-lede {
-		margin-top: 1.25rem;
-		max-width: 33ch;
+		margin-top: 1.1rem;
+		max-width: 34ch;
 	}
 
 	.cta-row {
-		margin-top: 1.8rem;
+		margin-top: 1.7rem;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		justify-content: center;
 		gap: 0.9rem 1.5rem;
 	}
 
@@ -502,9 +447,8 @@
 	.hero-chips {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: center;
 		gap: 0.42rem;
-		margin: 1.8rem 0 0;
+		margin: 1.6rem 0 0;
 		padding: 0;
 		list-style: none;
 	}
@@ -529,193 +473,63 @@
 		line-height: 1;
 	}
 
-	/* --------------------------------------------------------- tunnel extras */
-	.tunnel-emoji {
-		position: absolute;
-		z-index: 3;
-		font-size: clamp(1.1rem, 2.2vw, 1.45rem);
-		line-height: 1;
-		pointer-events: none;
+	.hero-art {
+		display: grid;
+		justify-items: center;
+		gap: 0.8rem;
 	}
 
-	.tunnel-emoji .bob {
-		display: block;
-		animation: emoji-bob 7s var(--ease-soft) infinite;
+	.art-card {
+		width: min(100%, 26rem);
+		padding: clamp(0.8rem, 2vw, 1.2rem);
+		border: 1px solid var(--color-rule-soft);
+		border-radius: calc(var(--radius) * 1.4);
+		background: rgb(251 246 236 / 0.55);
+		box-shadow: 0 24px 48px -36px rgb(25 17 16 / 0.45);
 	}
 
-	.emoji-tulip {
-		top: 22%;
-		left: clamp(1rem, 9vw, 9rem);
-	}
-
-	.emoji-letter {
-		right: clamp(1rem, 8vw, 8rem);
-		bottom: 26%;
-		opacity: 0.9;
-	}
-
-	.emoji-letter .bob {
-		animation-duration: 8.4s;
-		animation-delay: -2.4s;
-	}
-
-	@keyframes emoji-bob {
-		0%,
-		100% {
-			transform: translate3d(0, 0, 0) rotate(-4deg);
-		}
-		50% {
-			transform: translate3d(0, -9px, 0) rotate(5deg);
-		}
-	}
-
-	/* ------------------------------------------------------------- payoff */
-	.hero-end {
-		position: absolute;
-		left: 50%;
-		bottom: clamp(3.4rem, 7vh, 4.6rem);
-		z-index: 4;
-		width: max-content;
-		max-width: min(90vw, 34rem);
-		transform: translateX(-50%) translateY(calc((1 - clamp(0, calc((var(--p, 0) - 0.68) / 0.16), 1)) * 10px));
-		opacity: clamp(0, calc((var(--p, 0) - 0.68) / 0.16), 1);
-		font-family: var(--font-display);
-		font-style: italic;
-		font-size: clamp(0.9rem, 1.6vw, 1.05rem);
-		color: var(--color-rose-deep);
-		text-align: center;
-	}
-
-	/* ---------------------------------------------------------- progress rail */
-	.hero-rail {
-		position: absolute;
-		left: 50%;
-		bottom: clamp(1rem, 2.6vh, 1.8rem);
-		z-index: 4;
-		display: flex;
-		align-items: center;
-		gap: 0.7rem;
-		transform: translateX(-50%);
-		color: var(--color-ink-faint);
-	}
-
-	.rail-label,
-	.rail-count {
-		font-size: 0.54rem;
+	.art-note {
+		font-size: 0.56rem;
 		letter-spacing: 0.16em;
-		white-space: nowrap;
+		color: var(--color-ink-faint);
+		text-transform: uppercase;
 	}
 
-	.rail-count {
-		color: var(--color-rose-deep);
-	}
-
-	.rail-track {
-		position: relative;
-		width: clamp(64px, 11vw, 132px);
-		height: 1px;
-		background: var(--color-rule);
-		overflow: hidden;
-	}
-
-	.rail-track i {
-		position: absolute;
-		inset: 0;
-		background: var(--color-rose);
-		transform-origin: left;
-		transform: scaleX(var(--p, 0));
-	}
-
-	@media (max-width: 900px) {
-		/* Longer scroll runway on phones/tablets so the tunnel unfolds slowly
-		   and feels smoother on mobile GPUs. */
-		.hero {
-			height: 360vh;
-			height: 360svh;
-		}
-
-		.hero-stage {
-			padding-block: clamp(3.6rem, 8vh, 5rem) 4.6rem;
-		}
-
-		.emoji-tulip {
-			top: 16%;
-		}
-
-		.emoji-letter {
-			bottom: 30%;
+	@media (min-width: 860px) {
+		.hero-inner {
+			grid-template-columns: 1.05fr 0.95fr;
 		}
 	}
 
 	@media (max-width: 620px) {
 		.hero-copy {
-			max-width: 24rem;
+			justify-items: center;
+			text-align: center;
+			max-width: 28rem;
+			margin-inline: auto;
+		}
+
+		.cta-row {
+			justify-content: center;
+		}
+
+		.hero-chips {
+			justify-content: center;
 		}
 
 		.hero-lede {
 			font-size: 0.95rem;
 			line-height: 1.65;
 		}
-
-		.hero-chips li {
-			font-size: 0.52rem;
-			padding: 0.3rem 0.55rem 0.28rem;
-		}
-
-		/* The copy runs wider than the flowers on phones, so the paper window
-		   behind it gets wider too. */
-		.hero-scrim {
-			background: radial-gradient(
-				ellipse 68% 42% at 50% 52%,
-				rgb(241 232 218 / 0.9) 0%,
-				rgb(241 232 218 / 0.72) 58%,
-				rgb(241 232 218 / 0.2) 88%,
-				transparent 100%
-			);
-		}
-
-		.tunnel-emoji {
-			display: none;
-		}
-	}
-
-	@media (hover: none) and (pointer: coarse) {
-		.hero {
-			height: 420vh;
-			height: 420svh;
-		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.hero {
-			height: auto;
-		}
-
-		.hero-stage {
-			position: relative;
-			height: auto;
-			min-height: 92svh;
-			padding-block: clamp(5rem, 10vh, 7rem) 5rem;
-		}
-
-		.hero-end {
-			display: none;
-		}
-
-		.doodle,
-		.tunnel-emoji .bob {
+		.doodle {
 			animation: none;
 		}
 	}
 
-	/* Lightweight hero on touch devices: keep the scroll-linked tunnel, drop
-	   extra infinite motion and decorative layers for smoother scrolling. */
 	@media (hover: none) and (pointer: coarse) {
-		.hero-petals,
-		.tunnel-emoji {
-			display: none;
-		}
-
 		.doodle {
 			animation: none;
 		}

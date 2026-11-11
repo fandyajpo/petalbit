@@ -15,15 +15,15 @@
 	import { validateBouquet } from '$lib/validation';
 
 	const steps = [
-		{ n: 1, label: 'Pilih bunga' },
-		{ n: 2, label: 'Tulis pesan' },
-		{ n: 3, label: 'Kirim' }
+		{ n: 1, label: 'Pick flowers' },
+		{ n: 2, label: 'Write your note' },
+		{ n: 3, label: 'Send it' }
 	] as const;
 
 	const samples = [
-		'Semoga harimu seindah bunga ini.',
-		'Terima kasih sudah ada, selalu.',
-		'Kecil, tapi tulus, seperti bunga ini.'
+		'Hope your day blooms as bright as this.',
+		'Thanks for always being around, fr.',
+		'Small but real, just like these flowers.'
 	];
 
 	function initialSelection(): string[] {
@@ -44,13 +44,13 @@
 
 	const canAddMore = $derived(selected.length < MAX_BOUQUET_FLOWERS);
 	const selectedFlowers = $derived(selected.flatMap((id) => getFlower(id) ?? []));
-	const previewFor = $derived(recipient.trim() || 'Seseorang Spesial');
-	const previewFrom = $derived(sender.trim() || 'Kamu');
+	const previewFor = $derived(recipient.trim() || 'Someone special');
+	const previewFrom = $derived(sender.trim() || 'You');
 	const atLimit = $derived(selected.length >= MAX_BOUQUET_FLOWERS);
 
 	const expiryLabel = $derived(
 		result
-			? new Intl.DateTimeFormat('id-ID', {
+			? new Intl.DateTimeFormat('en-US', {
 					weekday: 'long',
 					day: 'numeric',
 					month: 'long',
@@ -78,7 +78,7 @@
 		if (!canAddMore) {
 			errors = {
 				...errors,
-				flowers: `Maksimal ${MAX_BOUQUET_FLOWERS} tangkai per buket. Lepas satu dulu ya.`
+				flowers: `Max ${MAX_BOUQUET_FLOWERS} stems per bouquet. Drop one first to swap.`
 			};
 			return;
 		}
@@ -99,7 +99,7 @@
 
 	function validateStepOne(): boolean {
 		if (selected.length === 0) {
-			errors = { ...errors, flowers: 'Pilih setidaknya satu bunga untuk buketmu.' };
+			errors = { ...errors, flowers: 'Pick at least one flower for your bouquet.' };
 			return false;
 		}
 		clearError('flowers');
@@ -177,7 +177,7 @@
 			if (!response.ok || !data?.id) {
 				if (data?.errors) errors = data.errors;
 				serverError =
-					data?.message ?? 'Buketmu belum bisa dibuat. Coba lagi sebentar lagi ya.';
+					data?.message ?? 'Could not make your bouquet rn. Try again in a sec.';
 				if (data?.errors?.flowers) step = 1;
 				scrollToStudio();
 				return;
@@ -191,7 +191,7 @@
 			};
 			window.scrollTo({ top: 0, behavior: 'smooth' });
 		} catch {
-			serverError = 'Koneksi terputus. Periksa internetmu lalu coba sekali lagi.';
+			serverError = 'Connection dropped. Check your internet and try again.';
 		} finally {
 			submitting = false;
 		}
@@ -211,10 +211,10 @@
 </script>
 
 <svelte:head>
-	<title>Buat Buket · Petalbit</title>
+	<title>Make a bouquet · Petalbit</title>
 	<meta
 		name="description"
-		content="Rangkai buket bunga digital dalam tiga langkah: pilih bunga, tulis pesan, lalu bagikan tautannya. Gratis dan bertahan 7 hari."
+		content="Build a pixel bouquet in three steps: pick flowers, write a note, and share the link. Free and live for 7 days."
 	/>
 </svelte:head>
 
@@ -222,16 +222,15 @@
 	<div class="studio-glow" aria-hidden="true"></div>
 
 	<header class="studio-head reveal" use:reveal>
-		<p class="eyebrow">{result ? 'Selesai' : 'Studio buket'}</p>
+		<p class="eyebrow">{result ? 'All done' : 'Bouquet studio'}</p>
 		{#key result}
-			<h1 use:splitText={{ step: 55 }}>{result ? 'Buketmu sudah mekar.' : 'Rangkai buketmu.'}</h1>
+			<h1 use:splitText={{ step: 55 }}>{result ? 'Your bouquet is in bloom.' : 'Build your bouquet.'}</h1>
 		{/key}
 		<p class="sub">
 			{#if result}
-				Satu tautan kecil, satu pesan besar. Bagikan sekarang sebelum tujuh hari berlalu.
+				One tiny link, one big message. Send it before the seven days are up.
 			{:else}
-				Pilih bunga, tulis pesan, lalu kirimkan. Tidak perlu akun. Buketmu hidup selama tujuh
-				hari.
+				Pick flowers, write a note, and send it off. No account needed. Your bouquet lives for seven days.
 			{/if}
 		</p>
 	</header>
@@ -240,15 +239,14 @@
 		<div class="success reveal" use:reveal>
 			<div class="success-art">
 				<Bouquet flowers={selected} animate />
-				<span class="success-sticker">untuk {recipient.trim() || 'kamu'}</span>
+				<span class="success-sticker">for {recipient.trim() || 'you'}</span>
 			</div>
 
 			<div class="success-body">
-				<span class="success-badge">Tersimpan</span>
-				<h2>Buket untuk {recipient.trim() || 'seseorang'} siap dibagikan.</h2>
+				<span class="success-badge">Saved</span>
+				<h2>Your bouquet for {recipient.trim() || 'someone special'} is ready to send.</h2>
 				<p class="success-lede">
-					Salin tautannya dan kirim lewat chat, DM, atau email. Siapa pun yang membuka tautan ini
-					akan melihat buket dan pesanmu.
+					Copy the link and drop it in a chat, DM, or email. Anyone with this link can see your bouquet and note.
 				</p>
 
 				<CopyLink value={result.url} />
@@ -259,21 +257,21 @@
 						<path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="2" />
 					</svg>
 					<div>
-						<p class="expiry-main">Aktif sampai {expiryLabel}</p>
+						<p class="expiry-main">Live until {expiryLabel}</p>
 						<p class="expiry-sub">
-							Setelah itu buket dan pesanmu menghilang otomatis. Simpan tautannya baik-baik.
+							After that, your bouquet and message ghost automatically. Keep the link safe.
 						</p>
 					</div>
 				</div>
 
 				<div class="success-actions">
-					<a class="btn btn-primary" href={`/b/${result.id}`}>Lihat buket</a>
-					<button class="btn" type="button" onclick={reset}>Buat buket lagi</button>
+					<a class="btn btn-primary" href={`/b/${result.id}`}>View bouquet</a>
+					<button class="btn" type="button" onclick={reset}>Make another</button>
 				</div>
 			</div>
 		</div>
 	{:else}
-		<nav class="stepper" aria-label="Langkah membuat buket">
+		<nav class="stepper" aria-label="Bouquet steps">
 			{#each steps as item (item.n)}
 				<button
 					type="button"
@@ -303,17 +301,17 @@
 				{#if step === 1}
 					<div class="panel-head">
 						<div>
-							<h2>Pilih bungamu</h2>
-							<p>Pilih satu sampai tujuh tangkai. Urutan pilihan mengatur posisi di buket.</p>
+							<h2>Pick your flowers</h2>
+							<p>Choose one to seven stems. The order you pick sets their spot in the bouquet.</p>
 						</div>
 						<div class="tally" class:full={atLimit}>
 							<span class="tally-num">{selected.length}<span>/{MAX_BOUQUET_FLOWERS}</span></span>
-							<span class="tally-label">tangkai</span>
+							<span class="tally-label">stems</span>
 						</div>
 					</div>
 
 					<div class="quick-row">
-						<span class="quick-label">Racikan cepat</span>
+						<span class="quick-label">Quick picks</span>
 						{#each STARTER_BOUQUETS as starter (starter.label)}
 							<button
 								type="button"
@@ -340,11 +338,11 @@
 									disabled={!flower.available}
 									title={flower.available
 										? isSelected
-											? `Lepas ${flower.name}`
+											? `Remove ${flower.name}`
 											: locked
-												? `Maksimal ${MAX_BOUQUET_FLOWERS} tangkai`
-												: `Tambah ${flower.name}`
-										: `${flower.name} belum tersedia`}
+												? `Max ${MAX_BOUQUET_FLOWERS} stems`
+												: `Add ${flower.name}`
+										: `${flower.name} not available yet`}
 									onclick={() => toggle(flower.id)}
 								>
 									<div class="pick-art">
@@ -381,17 +379,17 @@
 					{:else}
 						<p class="limit-note" class:full={atLimit}>
 							{#if atLimit}
-								Buketmu sudah penuh. Lepas satu tangkai kalau mau mengganti.
+								Bouquet is full. Remove a stem if you wanna swap.
 							{:else}
-								Sisa {MAX_BOUQUET_FLOWERS - selected.length} tangkai lagi yang bisa ditambahkan.
+								{MAX_BOUQUET_FLOWERS - selected.length} stem slots left.
 							{/if}
 						</p>
 					{/if}
 				{:else if step === 2}
 					<div class="panel-head">
 						<div>
-							<h2>Tulis pesannya</h2>
-							<p>Nama dan pesan ini akan tampil di halaman buketmu.</p>
+							<h2>Write your note</h2>
+							<p>This name and message will show up on your bouquet page.</p>
 						</div>
 					</div>
 
@@ -399,7 +397,7 @@
 						<div class="field">
 							<div class="field-top">
 								<label class="field-label" for="sender">
-									Dari siapa? <span class="req">wajib</span>
+									Who is it from? <span class="req">required</span>
 								</label>
 								<span class="char" class:warn={sender.length > fieldLimits.sender.max - 6}>
 									{sender.length}/{fieldLimits.sender.max}
@@ -411,7 +409,7 @@
 								type="text"
 								bind:value={sender}
 								maxlength={fieldLimits.sender.max}
-								placeholder="Nama atau panggilanmu"
+								placeholder="Your name or nickname"
 								autocomplete="name"
 								aria-invalid={errors.sender ? 'true' : undefined}
 								aria-describedby={errors.sender ? 'sender-error' : 'sender-hint'}
@@ -422,14 +420,14 @@
 									<span class="err-dot" aria-hidden="true">!</span>{errors.sender}
 								</p>
 							{:else}
-								<p class="field-hint hint-line" id="sender-hint">2–32 karakter.</p>
+								<p class="field-hint hint-line" id="sender-hint">2–32 characters.</p>
 							{/if}
 						</div>
 
 						<div class="field">
 							<div class="field-top">
 								<label class="field-label" for="recipient">
-									Untuk siapa? <span class="req">wajib</span>
+									Who is it for? <span class="req">required</span>
 								</label>
 								<span class="char" class:warn={recipient.length > fieldLimits.recipient.max - 6}>
 									{recipient.length}/{fieldLimits.recipient.max}
@@ -441,7 +439,7 @@
 								type="text"
 								bind:value={recipient}
 								maxlength={fieldLimits.recipient.max}
-								placeholder="Siapa yang kamu pikirkan?"
+								placeholder="Who is on your mind?"
 								autocomplete="off"
 								aria-invalid={errors.recipient ? 'true' : undefined}
 								aria-describedby={errors.recipient ? 'recipient-error' : 'recipient-hint'}
@@ -453,7 +451,7 @@
 								</p>
 							{:else}
 								<p class="field-hint hint-line" id="recipient-hint">
-									Boleh nama, panggilan, atau julukan sayang.
+									Name, nickname, or pet name all work.
 								</p>
 							{/if}
 						</div>
@@ -461,7 +459,7 @@
 						<div class="field">
 							<div class="field-top">
 								<label class="field-label" for="message">
-									Pesan spesial <span class="req">wajib</span>
+									Your message <span class="req">required</span>
 								</label>
 								<span class="char" class:warn={message.length > fieldLimits.message.max - 30}>
 									{message.length}/{fieldLimits.message.max}
@@ -473,7 +471,7 @@
 								bind:value={message}
 								maxlength={fieldLimits.message.max}
 								rows="5"
-								placeholder="Tulis sesuatu yang ingin kamu titipkan pada kelopaknya…"
+								placeholder="Drop something sweet you want to leave with the petals..."
 								aria-invalid={errors.message ? 'true' : undefined}
 								aria-describedby={errors.message ? 'message-error' : 'message-hint'}
 								oninput={() => clearError('message')}
@@ -483,11 +481,11 @@
 									<span class="err-dot" aria-hidden="true">!</span>{errors.message}
 								</p>
 							{:else}
-								<p class="field-hint hint-line" id="message-hint">3–280 karakter.</p>
+								<p class="field-hint hint-line" id="message-hint">3–280 characters.</p>
 							{/if}
 
 							<div class="samples">
-								<span class="samples-label">Belum ada ide?</span>
+								<span class="samples-label">Need inspo?</span>
 								{#each samples as sample (sample)}
 									<button type="button" class="sample" onclick={() => {
 										message = sample;
@@ -502,14 +500,14 @@
 				{:else}
 					<div class="panel-head">
 						<div>
-							<h2>Tinjau buketmu</h2>
-							<p>Periksa sekali lagi. Setelah ini buketmu langsung bisa dibagikan.</p>
+							<h2>Review your bouquet</h2>
+							<p>Give it one last look. After this, your bouquet is ready to share.</p>
 						</div>
 					</div>
 
 					<div class="review">
 						<div class="review-row">
-							<span class="review-label">Bunga</span>
+							<span class="review-label">Flowers</span>
 							<div class="review-value">
 								<ul class="review-flowers">
 									{#each selectedFlowers as flower (flower.id)}
@@ -525,25 +523,25 @@
 									{/each}
 								</ul>
 							</div>
-							<button type="button" class="edit" onclick={() => goTo(1)}>Ubah</button>
+							<button type="button" class="edit" onclick={() => goTo(1)}>Edit</button>
 						</div>
 
 						<div class="review-row">
-							<span class="review-label">Dari</span>
+							<span class="review-label">From</span>
 							<div class="review-value">{sender.trim()}</div>
-							<button type="button" class="edit" onclick={() => goTo(2)}>Ubah</button>
+							<button type="button" class="edit" onclick={() => goTo(2)}>Edit</button>
 						</div>
 
 						<div class="review-row">
-							<span class="review-label">Untuk</span>
+							<span class="review-label">To</span>
 							<div class="review-value">{recipient.trim()}</div>
-							<button type="button" class="edit" onclick={() => goTo(2)}>Ubah</button>
+							<button type="button" class="edit" onclick={() => goTo(2)}>Edit</button>
 						</div>
 
 						<div class="review-row message-row">
-							<span class="review-label">Pesan</span>
+							<span class="review-label">Message</span>
 							<div class="review-value review-message">{message.trim()}</div>
-							<button type="button" class="edit" onclick={() => goTo(2)}>Ubah</button>
+							<button type="button" class="edit" onclick={() => goTo(2)}>Edit</button>
 						</div>
 					</div>
 
@@ -553,10 +551,9 @@
 							<path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="2" />
 						</svg>
 						<div>
-							<p class="expiry-main">Buket ini bertahan 7 hari.</p>
+							<p class="expiry-main">This bouquet lasts 7 days.</p>
 							<p class="expiry-sub">
-								Setelah itu, buket dan pesanmu menghilang otomatis. Tidak ada data yang
-								tersimpan lebih lama.
+								After that, your bouquet and message ghost automatically. Nothing sticks around longer.
 							</p>
 						</div>
 					</div>
@@ -575,14 +572,14 @@
 								<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 									<path d="M14 8H4M8 3 3 8l5 5" stroke="currentColor" stroke-width="2" />
 								</svg>
-								Kembali
+								Back
 							</button>
 						{/if}
 					</div>
 
 					{#if step < 3}
 						<button type="button" class="btn btn-primary" onclick={next}>
-							{step === 1 ? 'Lanjut: tulis pesan' : 'Lanjut: tinjau buket'}
+							{step === 1 ? 'Next: write your note' : 'Next: review'}
 							<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 								<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
 							</svg>
@@ -595,9 +592,9 @@
 							onclick={submit}
 						>
 							{#if submitting}
-								Merangkai…
+								Building...
 							{:else}
-								Buat Buketku
+								Make my bouquet
 								<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 									<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
 								</svg>
@@ -607,11 +604,11 @@
 				</div>
 			</div>
 
-			<aside class="preview reveal" aria-label="Pratinjau buket" use:reveal={{ delay: 120 }}>
+			<aside class="preview reveal" aria-label="Bouquet preview" use:reveal={{ delay: 120 }}>
 				<div class="preview-card">
 					<div class="preview-top">
-						<span class="preview-eyebrow">Pratinjau</span>
-						<span class="preview-live"><i></i>langsung</span>
+						<span class="preview-eyebrow">Preview</span>
+						<span class="preview-live"><i></i>live</span>
 					</div>
 
 					<div class="preview-art">
@@ -619,18 +616,18 @@
 					</div>
 
 					{#if selected.length === 0}
-						<p class="preview-empty">Pilih bunga, dan buketmu akan tumbuh di sini.</p>
+						<p class="preview-empty">Pick some flowers and your bouquet will bloom right here.</p>
 					{:else}
 						<div class="preview-meta">
-							<p class="pv-to">Untuk <strong>{previewFor}</strong></p>
-							<p class="pv-from">Dari {previewFrom}</p>
+							<p class="pv-to">For <strong>{previewFor}</strong></p>
+							<p class="pv-from">From {previewFrom}</p>
 							{#if message.trim()}
 								<p class="pv-msg">“{message.trim()}”</p>
 							{/if}
 						</div>
 					{/if}
 				</div>
-				<p class="preview-note">Persis seperti yang akan dilihat penerima.</p>
+				<p class="preview-note">Exactly what they will see.</p>
 			</aside>
 		</div>
 	{/if}

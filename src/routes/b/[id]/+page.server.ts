@@ -4,20 +4,20 @@ import { getBouquet } from '$lib/server/bouquet-store';
 import { bouquetIdSchema } from '$lib/validation';
 import { BOUQUET_TTL_SECONDS } from '$lib/types';
 
-const timeFormat = new Intl.DateTimeFormat('id-ID', {
+const timeFormat = new Intl.DateTimeFormat('en-US', {
 	weekday: 'long',
 	day: 'numeric',
 	month: 'long',
 	year: 'numeric',
 	hour: '2-digit',
 	minute: '2-digit',
-	timeZone: 'Asia/Jakarta'
+	timeZone: 'UTC'
 });
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const parsed = bouquetIdSchema.safeParse(params.id);
 	if (!parsed.success) {
-		throw error(404, 'Buket ini tidak ditemukan.');
+		throw error(404, 'This bouquet was not found.');
 	}
 
 	let bouquet;
@@ -25,11 +25,11 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		bouquet = await getBouquet(parsed.data);
 	} catch (cause) {
 		console.error('[petalbit] failed to read bouquet', cause);
-		throw error(503, 'Buket ini sedang tidak bisa dibuka. Coba lagi sebentar lagi.');
+		throw error(503, 'This bouquet cannot be opened right now. Try again in a sec.');
 	}
 
 	if (!bouquet) {
-		throw error(404, 'Buket ini sudah tidak ada. Mungkin sudah lewat tujuh hari.');
+		throw error(404, 'This bouquet is gone. It probably expired after seven days.');
 	}
 
 	const created = new Date(bouquet.createdAt);
@@ -38,8 +38,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	return {
 		bouquet,
 		url: `${url.origin}/b/${bouquet.id}`,
-		createdLabel: `${timeFormat.format(created)} WIB`,
-		expiresLabel: `${timeFormat.format(expires)} WIB`,
+		createdLabel: `${timeFormat.format(created)} UTC`,
+		expiresLabel: `${timeFormat.format(expires)} UTC`,
 		expiresAt: expires.toISOString()
 	};
 };

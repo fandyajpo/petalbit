@@ -9,25 +9,25 @@ const MAX_BODY_BYTES = 8 * 1024;
 export const POST: RequestHandler = async ({ request, url }) => {
 	const contentType = request.headers.get('content-type') ?? '';
 	if (!contentType.includes('application/json')) {
-		return json({ message: 'Format permintaan tidak didukung.' }, { status: 415 });
+		return json({ message: 'Unsupported request format.' }, { status: 415 });
 	}
 
 	const raw = await request.text();
 	if (raw.length > MAX_BODY_BYTES) {
-		return json({ message: 'Data buket terlalu besar.' }, { status: 413 });
+		return json({ message: 'Bouquet data is too big.' }, { status: 413 });
 	}
 
 	let payload: unknown;
 	try {
 		payload = JSON.parse(raw);
 	} catch {
-		return json({ message: 'Data buket tidak bisa dibaca.' }, { status: 400 });
+		return json({ message: 'Could not read bouquet data.' }, { status: 400 });
 	}
 
 	const parsed = bouquetInputSchema.safeParse(payload);
 	if (!parsed.success) {
 		return json(
-			{ message: 'Ada isian yang perlu diperbaiki.', errors: fieldErrors(parsed.error) },
+			{ message: 'Some fields need fixing.', errors: fieldErrors(parsed.error) },
 			{ status: 400 }
 		);
 	}
@@ -46,7 +46,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	} catch (error) {
 		console.error('[petalbit] failed to store bouquet', error);
 		return json(
-			{ message: 'Buketmu belum bisa disimpan. Coba lagi sebentar lagi ya.' },
+			{ message: 'Could not save your bouquet rn. Try again in a sec.' },
 			{ status: 503 }
 		);
 	}

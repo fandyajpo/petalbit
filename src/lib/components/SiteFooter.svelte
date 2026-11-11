@@ -9,22 +9,22 @@
 		<div class="brand-col">
 			<Brand inverted showTagline />
 			<p class="desc">
-				Generator buket bunga digital gratis. Rangkai dengan pixel, kirim dengan hati. Tanpa akun,
-				tanpa biaya.
+				Free pixel bouquet maker. Pick the blooms, drop the feels, send it with one link. No
+				account, no cost, all vibes.
 			</p>
-			<a class="top-link mono" href="#top">Kembali ke atas ↑</a>
+			<a class="top-link mono" href="#top">Back to top ↑</a>
 		</div>
 
-		<nav class="links" aria-label="Navigasi footer">
-			<h2 class="mono col-title">Jelajahi</h2>
-			<a href="/create">Buat buket</a>
-			<a href="/#cara-kerja">Cara kerja</a>
-			<a href="/#bunga">Koleksi bunga</a>
-			<a href="/#dukung">Dukung Petalbit</a>
+		<nav class="links" aria-label="Footer navigation">
+			<h2 class="mono col-title">Explore</h2>
+			<a href="/create">Make a bouquet</a>
+			<a href="/#cara-kerja">How it works</a>
+			<a href="/#bunga">Flower lineup</a>
+			<a href="/#dukung">Support Petalbit</a>
 		</nav>
 
 		<div class="links">
-			<h2 class="mono col-title">Tentang</h2>
+			<h2 class="mono col-title">About</h2>
 			<a
 				class="support-link"
 				href="https://saweria.co/fandy11"
@@ -33,7 +33,7 @@
 			>
 				<img src="/brand/saweria.png" alt="" width="15" height="15" loading="lazy" />
 				Saweria
-				<span class="sr-only">(terbuka di tab baru)</span>
+				<span class="sr-only">(opens in a new tab)</span>
 			</a>
 			<a
 				class="support-link"
@@ -43,10 +43,10 @@
 			>
 				<img src="/brand/sociabuzz.png" alt="" width="15" height="15" loading="lazy" />
 				Sociabuzz
-				<span class="sr-only">(terbuka di tab baru)</span>
+				<span class="sr-only">(opens in a new tab)</span>
 			</a>
 			<p class="note">
-				Semua buket bersifat sementara: tautan dan pesannya otomatis hilang setelah 7 hari.
+				Every bouquet is temporary: the link and message ghost after 7 days.
 			</p>
 		</div>
 	</div>
@@ -56,7 +56,7 @@
 	</div>
 
 	<div class="shell base">
-		<p class="mono">© {year} Petalbit · Dibuat dengan pixel dan bunga</p>
+		<p class="mono">© {year} Petalbit · Made with pixels and petals</p>
 		<p class="mono foot-tag">Little pixels, lovely flowers.</p>
 	</div>
 </footer>

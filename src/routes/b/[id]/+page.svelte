@@ -21,15 +21,15 @@
 		const tick = () => {
 			const ms = end - Date.now();
 			if (ms <= 0) {
-				remaining = 'Buket ini sudah berakhir';
+				remaining = 'This bouquet has expired';
 				return;
 			}
 			const days = Math.floor(ms / 86_400_000);
 			const hours = Math.floor(ms / 3_600_000) % 24;
 			const minutes = Math.floor(ms / 60_000) % 60;
-			if (days > 0) remaining = `Tersisa ${days} hari ${hours} jam`;
-			else if (hours > 0) remaining = `Tersisa ${hours} jam ${minutes} menit`;
-			else remaining = `Tersisa ${minutes} menit`;
+			if (days > 0) remaining = `${days}d ${hours}h left`;
+			else if (hours > 0) remaining = `${hours}h ${minutes}m left`;
+			else remaining = `${minutes}m left`;
 		};
 		tick();
 		const timer = setInterval(tick, 60_000);
@@ -38,13 +38,13 @@
 </script>
 
 <svelte:head>
-	<title>{bouquet.recipient} menerima buket dari {bouquet.sender} · Petalbit</title>
+	<title>{bouquet.recipient} got a bouquet from {bouquet.sender} · Petalbit</title>
 	<meta
 		name="description"
-		content={`“${bouquet.message.slice(0, 120)}” Buket bunga digital dari ${bouquet.sender} untuk ${bouquet.recipient}.`}
+		content={`“${bouquet.message.slice(0, 120)}” A pixel bouquet from ${bouquet.sender} for ${bouquet.recipient}.`}
 	/>
 	<meta name="robots" content="noindex" />
-	<meta property="og:title" content={`${bouquet.sender} mengirim buket untuk ${bouquet.recipient}`} />
+	<meta property="og:title" content={`${bouquet.sender} sent a bouquet for ${bouquet.recipient}`} />
 	<meta property="og:description" content={bouquet.message} />
 	<meta property="og:type" content="article" />
 	<meta property="og:image" content="/og.png" />
@@ -58,9 +58,9 @@
 	</div>
 
 	<header class="share-head reveal" use:reveal>
-		<p class="eyebrow">Buket digital · {flowers.length} tangkai</p>
-		<h1 use:splitText={{ step: 60 }}>Untuk <em>{bouquet.recipient}</em>.</h1>
-		<p class="sub">Dikirim oleh {bouquet.sender} · {data.createdLabel}</p>
+		<p class="eyebrow">Pixel bouquet · {flowers.length} stems</p>
+		<h1 use:splitText={{ step: 60 }}>For <em>{bouquet.recipient}</em>.</h1>
+		<p class="sub">Sent by {bouquet.sender} · {data.createdLabel}</p>
 	</header>
 
 	<div class="share-grid">
@@ -71,13 +71,13 @@
 				</span>
 				<Bouquet flowers={bouquet.flowers} />
 			</div>
-			<p class="art-note">Dirangkai pixel per pixel, khusus untukmu.</p>
+			<p class="art-note">Built pixel by pixel, just for you.</p>
 		</div>
 
 		<article class="letter reveal" use:reveal={{ delay: 160 }}>
 			<div class="letter-top">
 				<span class="letter-mark">{initial}</span>
-				<span class="letter-label">Pesan spesial</span>
+				<span class="letter-label">A little note</span>
 				{#if remaining}
 					<span class="letter-badge">{remaining}</span>
 				{/if}
@@ -87,7 +87,7 @@
 				<p>{bouquet.message}</p>
 			</blockquote>
 
-			<p class="letter-sign">Dari {bouquet.sender}</p>
+			<p class="letter-sign">From {bouquet.sender}</p>
 
 			<ul class="flower-tags">
 				{#each flowers as flower (flower.id)}
@@ -99,7 +99,7 @@
 			</ul>
 
 			<div class="letter-share">
-				<CopyLink value={data.url} label="Bagikan buket ini" />
+				<CopyLink value={data.url} label="Share this bouquet" />
 			</div>
 
 			<div class="letter-expiry">
@@ -108,8 +108,7 @@
 					<path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="2" />
 				</svg>
 				<p>
-					Buket ini hanya bertahan selama 7 hari setelah dibuat. Setelah itu, buket dan pesanmu
-					akan menghilang secara otomatis pada <strong>{data.expiresLabel}</strong>.
+					This bouquet is here for 7 days after it was made. After that, the bouquet and message ghost automatically on <strong>{data.expiresLabel}</strong>.
 				</p>
 			</div>
 		</article>
@@ -117,11 +116,11 @@
 
 	<div class="share-cta reveal" use:reveal>
 		<div>
-			<p class="cta-title">Mau mengirim buketmu sendiri?</p>
-			<p class="cta-sub">Tiga langkah, satu menit, tanpa akun.</p>
+			<p class="cta-title">Wanna send your own bouquet?</p>
+			<p class="cta-sub">Three steps, one minute, no account.</p>
 		</div>
 		<a class="btn btn-primary" href="/create">
-			Buat Buket
+			Make a bouquet
 			<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 				<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
 			</svg>

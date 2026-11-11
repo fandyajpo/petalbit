@@ -5,9 +5,9 @@
 	import { magnet } from '$lib/actions/motion';
 
 	const links = [
-		{ href: '/#cara-kerja', label: 'Cara Kerja' },
-		{ href: '/#bunga', label: 'Bunga' },
-		{ href: '/#dukung', label: 'Dukung' }
+		{ href: '/#cara-kerja', label: 'How it works' },
+		{ href: '/#bunga', label: 'The lineup' },
+		{ href: '/#dukung', label: 'Support' }
 	];
 
 	const onCreatePage = $derived(page.url.pathname.startsWith('/create'));
@@ -66,7 +66,7 @@
 	<div class="bar">
 		<Brand size="sm" />
 
-		<nav aria-label="Navigasi utama" bind:this={nav} onpointerleave={hidePill}>
+		<nav aria-label="Main navigation" bind:this={nav} onpointerleave={hidePill}>
 			<span class="pill" bind:this={pill} aria-hidden="true"></span>
 			{#each links as link (link.href)}
 				<a
@@ -88,9 +88,9 @@
 				use:magnet={{ strength: 6 }}
 			>
 				{#if onCreatePage}
-					Beranda
+					Home
 				{:else}
-					Buat Buket
+					Make a bouquet
 				{/if}
 			</a>
 
@@ -101,7 +101,7 @@
 				aria-controls="menu-panel"
 				onclick={() => (open = !open)}
 			>
-				<span class="menu-label">{open ? 'Tutup' : 'Menu'}</span>
+				<span class="menu-label">{open ? 'Close' : 'Menu'}</span>
 				<span class="menu-glyph" aria-hidden="true"><i></i><i></i></span>
 			</button>
 		</div>
@@ -110,7 +110,7 @@
 	<div class="scroll-progress" aria-hidden="true" style="transform: scaleX({progress})"></div>
 
 	<div class="panel" id="menu-panel" class:shown={open}>
-		<nav aria-label="Navigasi seluler">
+		<nav aria-label="Mobile navigation">
 			{#each links as link, i (link.href)}
 				<a
 					href={link.href}
@@ -124,9 +124,9 @@
 			{/each}
 		</nav>
 		<div class="panel-foot">
-			<p class="mono">Gratis · tanpa akun · 7 hari</p>
+			<p class="mono">Free · no login · 7 days</p>
 			<a class="btn btn-primary btn-sm" href="/create" tabindex={open ? 0 : -1} onclick={() => (open = false)}>
-				Mulai merangkai
+				Start creating
 			</a>
 		</div>
 	</div>

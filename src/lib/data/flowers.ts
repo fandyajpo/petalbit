@@ -27,11 +27,11 @@ export const MAX_BOUQUET_FLOWERS = 7;
 export const FLOWERS: Flower[] = [
 	{
 		id: 'mawar',
-		name: 'Mawar',
+		name: 'Rose',
 		latin: 'Rosa',
-		description: 'Berlapis dan hangat. Untuk pesan yang tidak perlu banyak kata.',
+		description: 'Layered and warm. For when words are lowkey not enough.',
 		image: '/art/flowers/mawar.png',
-		tone: 'klasik',
+		tone: 'classic',
 		maxPerBouquet: 1,
 		available: true
 	},
@@ -39,9 +39,9 @@ export const FLOWERS: Flower[] = [
 		id: 'peony',
 		name: 'Peony',
 		latin: 'Paeonia',
-		description: 'Rimbun dan lembut, seperti pelukan yang datang tepat waktu.',
+		description: 'Big, soft, and cozy. Like a hug that showed up right on time.',
 		image: '/art/flowers/peony.png',
-		tone: 'romantis',
+		tone: 'romantic',
 		maxPerBouquet: 1,
 		available: true
 	},
@@ -49,9 +49,9 @@ export const FLOWERS: Flower[] = [
 		id: 'tulip',
 		name: 'Tulip',
 		latin: 'Tulipa',
-		description: 'Ramping dan tenang, cocok untuk ucapan yang manis dan sederhana.',
+		description: 'Clean and chill, perfect for a sweet, simple shoutout.',
 		image: '/art/flowers/tulip.png',
-		tone: 'lembut',
+		tone: 'soft',
 		maxPerBouquet: 1,
 		available: true
 	},
@@ -59,39 +59,39 @@ export const FLOWERS: Flower[] = [
 		id: 'daisy',
 		name: 'Daisy',
 		latin: 'Leucanthemum',
-		description: 'Putih bersih dengan mata keemasan. Selalu terlihat ceria.',
+		description: 'Bright white with a sunny core. Always serving good vibes.',
 		image: '/art/flowers/daisy.png',
-		tone: 'ceria',
+		tone: 'cheerful',
 		maxPerBouquet: 1,
 		available: true
 	},
 	{
 		id: 'matahari',
-		name: 'Matahari',
+		name: 'Sunflower',
 		latin: 'Helianthus',
-		description: 'Besar dan penuh energi, untuk seseorang yang selalu menerangi.',
+		description: 'Big energy for someone who lights up the room, no cap.',
 		image: '/art/flowers/matahari.png',
-		tone: 'hangat',
+		tone: 'sunny',
 		maxPerBouquet: 1,
 		available: true
 	},
 	{
 		id: 'bakung',
-		name: 'Bakung',
+		name: 'Lily',
 		latin: 'Lilium',
-		description: 'Elegan dengan wangi lembut, simbol harapan dan rasa hormat.',
+		description: 'Elegant and graceful, a whole mood of hope and respect.',
 		image: '/art/flowers/bakung.png',
-		tone: 'elegan',
+		tone: 'elegant',
 		maxPerBouquet: 1,
 		available: true
 	},
 	{
 		id: 'anggrek',
-		name: 'Anggrek',
+		name: 'Orchid',
 		latin: 'Phalaenopsis',
-		description: 'Mewah tanpa berlebihan. Untuk rasa kagum yang tak perlu dijelaskan.',
+		description: 'Extra in the best way. For admiration that speaks for itself.',
 		image: '/art/flowers/anggrek.png',
-		tone: 'mewah',
+		tone: 'luxe',
 		maxPerBouquet: 1,
 		available: true
 	},
@@ -99,9 +99,9 @@ export const FLOWERS: Flower[] = [
 		id: 'iris',
 		name: 'Iris',
 		latin: 'Iris',
-		description: 'Tegak dan berani, dengan tiga kelopak yang menunduk pelan.',
+		description: 'Bold and artsy, standing tall with main character energy.',
 		image: '/art/flowers/iris.png',
-		tone: 'anggun',
+		tone: 'bold',
 		maxPerBouquet: 1,
 		available: true
 	},
@@ -109,19 +109,19 @@ export const FLOWERS: Flower[] = [
 		id: 'lavender',
 		name: 'Lavender',
 		latin: 'Lavandula',
-		description: 'Tenang dan menenangkan, wanginya menempel lama di ingatan.',
+		description: 'Calm and soothing, the vibe that just sticks with you.',
 		image: '/art/flowers/lavender.png',
-		tone: 'tenang',
+		tone: 'chill',
 		maxPerBouquet: 1,
 		available: true
 	},
 	{
 		id: 'eukaliptus',
-		name: 'Eukaliptus',
+		name: 'Eucalyptus',
 		latin: 'Eucalyptus',
-		description: 'Dedaunan perak yang membuat buket terasa lebih hidup.',
+		description: 'Fresh silver greens that make the whole bouquet pop.',
 		image: '/art/flowers/eukaliptus.png',
-		tone: 'dedaunan',
+		tone: 'greenery',
 		maxPerBouquet: 1,
 		available: true
 	}
@@ -141,9 +141,9 @@ export function isFlowerId(id: string): boolean {
 
 /** Curated arrangements used when nothing has been picked yet. */
 export const STARTER_BOUQUETS: { label: string; flowers: string[] }[] = [
-	{ label: 'Romantis', flowers: ['mawar', 'peony', 'anggrek', 'tulip', 'eukaliptus'] },
-	{ label: 'Hangat', flowers: ['matahari', 'daisy', 'mawar', 'eukaliptus'] },
-	{ label: 'Lembut', flowers: ['peony', 'bakung', 'iris', 'lavender'] }
+	{ label: 'Romantic', flowers: ['mawar', 'peony', 'anggrek', 'tulip', 'eukaliptus'] },
+	{ label: 'Sunny', flowers: ['matahari', 'daisy', 'mawar', 'eukaliptus'] },
+	{ label: 'Soft', flowers: ['peony', 'bakung', 'iris', 'lavender'] }
 ];
 
 export const DEFAULT_BOUQUET = ['mawar', 'peony', 'tulip', 'daisy', 'eukaliptus'];

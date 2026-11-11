@@ -164,8 +164,8 @@
 
 	const label = $derived(
 		ids.length
-			? `Buket digital berisi ${slots.map((slot) => slot.name).join(', ')}`
-			: 'Buket bunga digital Petalbit'
+			? `Pixel bouquet with ${slots.map((slot) => slot.name).join(', ')}`
+			: 'Petalbit pixel flower bouquet'
 	);
 
 	const sprigs = [
