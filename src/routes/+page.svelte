@@ -627,9 +627,11 @@
 	}
 
 	@media (max-width: 900px) {
+		/* Longer scroll runway on phones/tablets so the tunnel unfolds slowly
+		   and feels smoother on mobile GPUs. */
 		.hero {
-			height: 185vh;
-			height: 185svh;
+			height: 360vh;
+			height: 360svh;
 		}
 
 		.hero-stage {
@@ -674,6 +676,13 @@
 
 		.tunnel-emoji {
 			display: none;
+		}
+	}
+
+	@media (hover: none) and (pointer: coarse) {
+		.hero {
+			height: 420vh;
+			height: 420svh;
 		}
 	}
 
