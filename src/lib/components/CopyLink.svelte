@@ -51,7 +51,7 @@
 		</button>
 	</div>
 	{#if failed}
-		<p class="status" role="status">Tidak bisa menyalin otomatis — salin tautan di atas ya.</p>
+		<p class="status" role="status">Tidak bisa menyalin otomatis. Salin tautan di atas ya.</p>
 	{:else if copied}
 		<p class="status ok" role="status">Tautan siap dibagikan. Tinggal tempel di chat.</p>
 	{/if}

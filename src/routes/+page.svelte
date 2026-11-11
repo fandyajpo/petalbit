@@ -1,11 +1,16 @@
 <script lang="ts">
-	import Bouquet from '$lib/components/Bouquet.svelte';
+	import FlowerTunnel from '$lib/components/FlowerTunnel.svelte';
 	import FloatingPetals from '$lib/components/FloatingPetals.svelte';
 	import FlowerTicker from '$lib/components/FlowerTicker.svelte';
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import { countUp, magnet, splitText, spotlight, tilt } from '$lib/actions/motion';
+	import { parallax } from '$lib/actions/parallax';
+	import { scrollProgress } from '$lib/actions/scroll-progress';
 	import { FLOWERS } from '$lib/data/flowers';
+
+	let progress = $state(0);
+	const visible = $derived(Math.max(1, Math.min(9, Math.ceil(progress * 9))));
 
 	const steps = [
 		{
@@ -49,12 +54,12 @@
 </script>
 
 <svelte:head>
-	<title>Petalbit — Little pixels, lovely flowers.</title>
+	<title>Petalbit: Little pixels, lovely flowers.</title>
 	<meta
 		name="description"
 		content="Petalbit adalah generator buket bunga digital gratis. Pilih bunga pixel, tulis pesan spesial, lalu bagikan buketmu lewat satu tautan. Bertahan 7 hari."
 	/>
-	<meta property="og:title" content="Petalbit — Little pixels, lovely flowers." />
+	<meta property="og:title" content="Petalbit: Little pixels, lovely flowers." />
 	<meta
 		property="og:description"
 		content="Rangkai buket bunga digital untuk seseorang yang spesial. Gratis, tanpa akun, dan bertahan 7 hari."
@@ -66,71 +71,72 @@
 
 <IntroLoader />
 
-<section class="hero">
-	<div class="hero-wash" aria-hidden="true"></div>
-	<div class="hero-petals" aria-hidden="true">
-		<FloatingPetals count={6} />
-	</div>
+<section
+	class="hero"
+	use:scrollProgress={{
+		onProgress: (value) => {
+			progress = value;
+		}
+	}}
+>
+	<div class="hero-stage">
+		<FlowerTunnel />
 
-	<div class="shell hero-inner">
-		<div class="hero-copy">
-			<p class="mono hero-eyebrow">
-				<span class="dot" aria-hidden="true"></span>
-				Gratis · Tanpa akun · Bertahan 7 hari
-			</p>
+		<div class="hero-scrim" aria-hidden="true"></div>
 
-			<h1 class="display-xl" use:splitText={{ delay: 120, step: 62 }}>
-				Little pixels,<br /><em>lovely flowers.</em>
-			</h1>
-
-			<p class="body-lg hero-lede">
-				Rangkai buket bunga digital untuk seseorang yang spesial. Pilih kelopaknya, tulis pesannya,
-				lalu kirimkan lewat satu tautan cantik.
-			</p>
-
-			<div class="cta-row">
-				<a class="btn btn-primary" href="/create" use:magnet={{ strength: 9 }}>
-					Buat buket
-					<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-						<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" />
-					</svg>
-				</a>
-				<a class="link-arrow" href="#bunga">
-					Lihat koleksi
-					<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-						<path d="M8 2v12M3 9l5 5 5-5" stroke="currentColor" stroke-width="1.6" />
-					</svg>
-				</a>
-			</div>
-
-			<ul class="hero-facts">
-				<li><strong>09</strong> spesies bunga</li>
-				<li><strong>07</strong> tangkai per buket</li>
-				<li><strong>01</strong> tautan untuk dibagikan</li>
-			</ul>
+		<div class="hero-petals" aria-hidden="true">
+			<FloatingPetals count={5} />
 		</div>
 
-		<div class="hero-art" use:tilt={{ max: 3 }}>
-			<div class="plate marks" use:spotlight>
-				<div class="plate-head">
-					<span class="mono">Lembar contoh</span>
-					<span class="mono plate-no">No. 07 / 09</span>
-				</div>
-				<div class="plate-art">
-					<Bouquet hint />
-				</div>
-				<div class="plate-foot">
-					<span class="mono">Mawar · Tulip · Daisy</span>
-					<span class="mono">150 × 232 px</span>
-				</div>
-			</div>
-			<p class="art-caption">Setiap kelopak digambar pixel per pixel — bukan foto, bukan templat.</p>
-		</div>
-	</div>
+		<div class="shell hero-inner">
+			<div class="hero-copy">
+				<p class="sticker hero-badge">
+					<span class="emoji" aria-hidden="true">🌷</span>
+					buket digital · siap kirim
+				</p>
 
-	<div class="shell scroll-cue" aria-hidden="true">
-		<span class="mono">Gulir untuk melihat</span>
-		<span class="cue-line"><i></i></span>
+				<h1 class="display-xl" use:splitText={{ delay: 120, step: 62 }}>
+					Little pixels,<br /><em>lovely flowers</em><span class="doodle" aria-hidden="true">✿</span>
+				</h1>
+
+				<p class="body-lg hero-lede">
+					Rangkai buket bunga pixel buat orang yang bikin kamu senyum-senyum sendiri. Pilih
+					bunganya, titip pesannya, lalu kirim lewat satu tautan <span aria-hidden="true">💌</span>
+				</p>
+
+				<div class="cta-row">
+					<a class="btn btn-primary btn-hero" href="/create" use:magnet={{ strength: 9 }}>
+						Buat buket
+						<span class="btn-emoji" aria-hidden="true">💐</span>
+					</a>
+					<a class="link-arrow" href="#bunga">Lihat koleksi</a>
+				</div>
+
+				<ul class="hero-chips">
+					<li><span aria-hidden="true">🌷</span> 9 spesies</li>
+					<li><span aria-hidden="true">💐</span> 7 tangkai</li>
+					<li><span aria-hidden="true">⏳</span> 7 hari</li>
+					<li><span aria-hidden="true">✨</span> gratis, tanpa akun</li>
+				</ul>
+			</div>
+		</div>
+
+		<span class="tunnel-emoji emoji-tulip" aria-hidden="true" use:parallax={{ speed: -0.04, max: 40 }}>
+			<span class="bob">🌷</span>
+		</span>
+		<span class="tunnel-emoji emoji-letter" aria-hidden="true" use:parallax={{ speed: 0.06, max: 40 }}>
+			<span class="bob">💌</span>
+		</span>
+
+		<p class="hero-end" aria-live="off">
+			Sembilan bunga sudah mekar. Waktunya merangkai punyamu.
+		</p>
+
+		<div class="hero-rail" aria-hidden="true">
+			<span class="mono rail-label">tunnel bunga</span>
+			<span class="rail-track"><i></i></span>
+			<span class="mono rail-count">{String(visible).padStart(2, '0')} / 09</span>
+		</div>
 	</div>
 </section>
 
@@ -138,11 +144,11 @@
 
 <section class="section steps" id="cara-kerja">
 	<div class="shell">
-		<header class="section-head">
+		<header class="section-head reveal" use:reveal>
 			<p class="eyebrow">Cara kerja</p>
 			<h2 class="display-lg" use:splitText={{ step: 50 }}>Tiga langkah, satu buket.</h2>
 			<p class="section-sub">
-				Prosesnya sesederhana memilih bunga di toko sungguhan — hanya saja semuanya bisa selesai
+				Prosesnya sesederhana memilih bunga di toko sungguhan. Bedanya, semuanya bisa selesai
 				dalam satu menit.
 			</p>
 		</header>
@@ -171,7 +177,7 @@
 
 <section class="notice-wrap">
 	<div class="shell">
-		<div class="notice reveal" use:reveal>
+		<div class="notice reveal reveal-zoom" use:reveal>
 			<div class="notice-figure">
 				<span class="notice-num" use:countUp={{ to: 7, duration: 1400 }}>0</span>
 				<span class="mono">hari</span>
@@ -181,7 +187,7 @@
 				<h2>Indahnya karena sementara.</h2>
 				<p>
 					Buket ini hanya bertahan selama 7 hari setelah dibuat. Setelah itu, buket dan pesanmu
-					akan menghilang secara otomatis — tanpa pengingat, tanpa sisa.
+					akan menghilang secara otomatis, tanpa pengingat dan tanpa sisa.
 				</p>
 				<p class="notice-small">
 					Justru itu yang membuatnya terasa seperti bunga sungguhan: datang, mekar, lalu tenang.
@@ -193,7 +199,7 @@
 
 <section class="section collection" id="bunga">
 	<div class="shell">
-		<header class="section-head collection-head">
+		<header class="section-head collection-head reveal" use:reveal>
 			<div>
 				<p class="eyebrow">Koleksi</p>
 				<h2 class="display-lg" use:splitText={{ step: 45 }}>Sembilan bunga, satu buket.</h2>
@@ -247,7 +253,7 @@
 
 <section class="section support" id="dukung">
 	<div class="shell">
-		<div class="support-card reveal" use:reveal>
+		<div class="support-card reveal reveal-zoom" use:reveal>
 			<div class="support-art" aria-hidden="true">
 				<img src="/art/flowers/peony.png" alt="" width="450" height="696" class="s1" />
 				<img src="/art/flowers/lavender.png" alt="" width="450" height="696" class="s2" />
@@ -317,209 +323,379 @@
 
 	/* ------------------------------------------------------------------ hero */
 	.hero {
+		--p: 0;
 		position: relative;
-		padding-block: clamp(2.4rem, 5vw, 4.4rem) clamp(1rem, 2vw, 1.6rem);
-		overflow: hidden;
+		height: 235vh;
+		height: 235svh;
 	}
 
-	.hero-wash {
+	.hero-stage {
+		position: sticky;
+		top: 0;
+		display: grid;
+		place-items: center;
+		height: 100vh;
+		height: 100svh;
+		min-height: 600px;
+		overflow: clip;
+		isolation: isolate;
+		padding-block: clamp(4.2rem, 9vh, 6rem) clamp(4rem, 10vh, 5.6rem);
+	}
+
+	/* A soft paper window in the middle of the tunnel, so the headline always
+	   sits on calm ground no matter which blooms are passing behind it. */
+	.hero-scrim {
 		position: absolute;
-		inset: -30% -10% auto;
-		height: 118%;
-		background:
-			radial-gradient(ellipse 60% 50% at 78% 34%, rgb(236 207 202 / 0.75), transparent 62%),
-			radial-gradient(ellipse 40% 40% at 8% 4%, rgb(223 154 166 / 0.22), transparent 60%);
+		inset: 0;
+		z-index: 2;
 		pointer-events: none;
+		background: radial-gradient(
+			ellipse 34% 38% at 50% 50%,
+			rgb(241 232 218 / 0.6) 0%,
+			rgb(241 232 218 / 0.46) 55%,
+			rgb(241 232 218 / 0.14) 82%,
+			transparent 100%
+		);
 	}
 
 	.hero-petals {
 		position: absolute;
 		inset: 0;
+		z-index: 1;
 		pointer-events: none;
 	}
 
 	.hero-inner {
 		position: relative;
-		z-index: 2;
+		z-index: 3;
 		display: grid;
-		gap: clamp(2.2rem, 5vw, 4rem);
-		align-items: center;
+		place-items: center;
+		width: 100%;
 	}
 
-	.hero-eyebrow {
+	.hero-copy {
+		display: grid;
+		justify-items: center;
+		text-align: center;
+		max-width: 41rem;
+		opacity: calc(1 - var(--p, 0) * 0.16);
+		transform: translate3d(0, calc(var(--p, 0) * -16px), 0);
+	}
+
+	/* ------------------------------------------------------------- stickers */
+	.sticker {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.6rem;
+		gap: 0.45rem;
+		border-radius: 999px;
+		background: rgb(255 253 247 / 0.95);
+		border: 1px solid rgb(25 17 16 / 0.1);
+		box-shadow:
+			0 10px 22px -16px rgb(25 17 16 / 0.7),
+			inset 0 0 0 2px rgb(255 255 255 / 0.9);
+		padding: 0.38rem 0.72rem 0.34rem;
+		font-family: var(--font-mono);
+		font-size: 0.58rem;
+		font-weight: 500;
+		letter-spacing: 0.13em;
+		text-transform: uppercase;
 		color: var(--color-rose-deep);
+		white-space: nowrap;
 	}
 
-	.hero-eyebrow .dot {
-		width: 5px;
-		height: 5px;
-		background: var(--color-rose);
-		box-shadow: 0 0 0 3px rgb(173 54 72 / 0.14);
+	.hero-badge {
+		transform: rotate(-2.4deg);
 	}
 
+	.hero-badge .emoji {
+		font-size: 0.85rem;
+		line-height: 1;
+	}
+
+	/* ---------------------------------------------------------------- copy */
 	h1 {
-		margin: 1.2rem 0 0;
+		margin: 1.05rem 0 0;
 		font-weight: 500;
 	}
 
 	h1 em {
+		position: relative;
 		font-style: italic;
 		font-weight: 400;
 		color: var(--color-rose);
+		isolation: isolate;
+	}
+
+	/* Marker stroke behind the italic line, so the serif keeps the romance and
+	   the page stops reading like a spec sheet. */
+	h1 em::after {
+		content: '';
+		position: absolute;
+		left: 1%;
+		right: -1%;
+		bottom: 0.02em;
+		height: 0.1em;
+		z-index: -1;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			rgb(236 207 202 / 0.2),
+			rgb(223 154 166 / 0.85) 12%,
+			rgb(236 207 202 / 0.8) 88%,
+			rgb(236 207 202 / 0.15)
+		);
+		transform: rotate(-0.8deg);
+	}
+
+	.doodle {
+		display: inline-block;
+		margin-left: 0.14em;
+		font-size: 0.34em;
+		line-height: 1;
+		color: var(--color-rose-light);
+		vertical-align: super;
+		animation: doodle-twinkle 4.6s var(--ease-soft) infinite;
+	}
+
+	@keyframes doodle-twinkle {
+		0%,
+		100% {
+			transform: rotate(-6deg) scale(1);
+			opacity: 0.75;
+		}
+		50% {
+			transform: rotate(10deg) scale(1.12);
+			opacity: 1;
+		}
 	}
 
 	.hero-lede {
-		margin-top: 1.5rem;
-		max-width: 40ch;
+		margin-top: 1.25rem;
+		max-width: 33ch;
 	}
 
 	.cta-row {
-		margin-top: 2rem;
+		margin-top: 1.8rem;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.9rem 1.6rem;
+		justify-content: center;
+		gap: 0.9rem 1.5rem;
 	}
 
-	.hero-facts {
-		margin: 2.4rem 0 0;
+	.btn-hero {
+		padding: 0.95rem 1.45rem 0.92rem;
+		font-size: 0.9rem;
+	}
+
+	.btn-emoji {
+		font-size: 1rem;
+		line-height: 1;
+		transform: translateY(-1px);
+		transition: transform 420ms var(--ease-spring);
+	}
+
+	.btn-hero:hover .btn-emoji {
+		transform: translateY(-3px) rotate(-12deg) scale(1.1);
+	}
+
+	.hero-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.42rem;
+		margin: 1.8rem 0 0;
 		padding: 0;
 		list-style: none;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem 0;
-		font-family: var(--font-mono);
-		font-size: 0.62rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-ink-faint);
 	}
 
-	.hero-facts li {
+	.hero-chips li {
 		display: inline-flex;
-		align-items: baseline;
-		gap: 0.35rem;
-		padding-right: 1rem;
-		margin-right: 1rem;
-		border-right: 1px solid var(--color-rule);
-	}
-
-	.hero-facts li:last-child {
-		border-right: 0;
-		margin-right: 0;
-		padding-right: 0;
-	}
-
-	.hero-facts strong {
-		font-family: var(--font-display);
-		font-size: 0.95rem;
-		font-weight: 500;
-		letter-spacing: -0.01em;
-		color: var(--color-ink);
-	}
-
-	.hero-art {
-		position: relative;
-		max-width: 30rem;
-		margin-inline: auto;
-		width: 100%;
-	}
-
-	.plate {
-		position: relative;
-		background: linear-gradient(170deg, var(--color-paper) 0%, #f6ecdd 100%);
-		border: 1px solid var(--color-rule);
-		border-radius: var(--radius);
-		padding: 0.85rem 0.85rem 0.5rem;
-		box-shadow: var(--shadow-soft);
-	}
-
-	.plate::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background-image: radial-gradient(rgb(25 17 16 / 0.05) 0.7px, transparent 0.8px);
-		background-size: 3px 3px;
-		pointer-events: none;
-		opacity: 0.6;
-		mix-blend-mode: multiply;
-	}
-
-	.plate-head,
-	.plate-foot {
-		position: relative;
-		z-index: 2;
-		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.6rem;
-		color: var(--color-ink-faint);
+		gap: 0.4rem;
+		padding: 0.34rem 0.66rem 0.32rem;
+		border: 1px solid var(--color-rule-soft);
+		border-radius: 999px;
+		background: rgb(251 246 236 / 0.72);
+		font-family: var(--font-mono);
+		font-size: 0.57rem;
+		letter-spacing: 0.11em;
+		text-transform: uppercase;
+		color: var(--color-ink-soft);
 	}
 
-	.plate-no {
-		color: var(--color-rose-deep);
+	.hero-chips li span {
+		font-size: 0.8rem;
+		line-height: 1;
 	}
 
-	.plate-art {
-		position: relative;
-		z-index: 1;
-		margin: 0.5rem 0 0.1rem;
-		padding-inline: clamp(0.3rem, 1.6vw, 1.1rem);
+	/* --------------------------------------------------------- tunnel extras */
+	.tunnel-emoji {
+		position: absolute;
+		z-index: 3;
+		font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+		line-height: 1;
+		pointer-events: none;
 	}
 
-	.plate-foot {
-		border-top: 1px solid var(--color-rule-soft);
-		padding-top: 0.5rem;
+	.tunnel-emoji .bob {
+		display: block;
+		animation: emoji-bob 7s var(--ease-soft) infinite;
 	}
 
-	.art-caption {
-		margin-top: 0.9rem;
+	.emoji-tulip {
+		top: 22%;
+		left: clamp(1rem, 9vw, 9rem);
+	}
+
+	.emoji-letter {
+		right: clamp(1rem, 8vw, 8rem);
+		bottom: 26%;
+		opacity: 0.9;
+	}
+
+	.emoji-letter .bob {
+		animation-duration: 8.4s;
+		animation-delay: -2.4s;
+	}
+
+	@keyframes emoji-bob {
+		0%,
+		100% {
+			transform: translate3d(0, 0, 0) rotate(-4deg);
+		}
+		50% {
+			transform: translate3d(0, -9px, 0) rotate(5deg);
+		}
+	}
+
+	/* ------------------------------------------------------------- payoff */
+	.hero-end {
+		position: absolute;
+		left: 50%;
+		bottom: clamp(3.4rem, 7vh, 4.6rem);
+		z-index: 4;
+		width: max-content;
+		max-width: min(90vw, 34rem);
+		transform: translateX(-50%) translateY(calc((1 - clamp(0, calc((var(--p, 0) - 0.68) / 0.16), 1)) * 10px));
+		opacity: clamp(0, calc((var(--p, 0) - 0.68) / 0.16), 1);
 		font-family: var(--font-display);
 		font-style: italic;
-		font-size: 0.8rem;
-		color: var(--color-ink-faint);
+		font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+		color: var(--color-rose-deep);
 		text-align: center;
 	}
 
-	.scroll-cue {
-		display: none;
-		margin-top: 2.2rem;
+	/* ---------------------------------------------------------- progress rail */
+	.hero-rail {
+		position: absolute;
+		left: 50%;
+		bottom: clamp(1rem, 2.6vh, 1.8rem);
+		z-index: 4;
+		display: flex;
 		align-items: center;
-		gap: 0.8rem;
+		gap: 0.7rem;
+		transform: translateX(-50%);
 		color: var(--color-ink-faint);
 	}
 
-	.cue-line {
+	.rail-label,
+	.rail-count {
+		font-size: 0.54rem;
+		letter-spacing: 0.16em;
+		white-space: nowrap;
+	}
+
+	.rail-count {
+		color: var(--color-rose-deep);
+	}
+
+	.rail-track {
 		position: relative;
-		flex: 1;
+		width: clamp(64px, 11vw, 132px);
 		height: 1px;
 		background: var(--color-rule);
 		overflow: hidden;
 	}
 
-	.cue-line i {
+	.rail-track i {
 		position: absolute;
 		inset: 0;
 		background: var(--color-rose);
 		transform-origin: left;
-		animation: cue-sweep 3.4s var(--ease-soft) infinite;
+		transform: scaleX(var(--p, 0));
 	}
 
-	@keyframes cue-sweep {
-		0% {
-			transform: scaleX(0);
-			opacity: 0;
+	@media (max-width: 900px) {
+		.hero {
+			height: 185vh;
+			height: 185svh;
 		}
-		20% {
-			opacity: 1;
+
+		.hero-stage {
+			padding-block: clamp(3.6rem, 8vh, 5rem) 4.6rem;
 		}
-		70%,
-		100% {
-			transform: scaleX(1);
-			opacity: 0;
+
+		.emoji-tulip {
+			top: 16%;
+		}
+
+		.emoji-letter {
+			bottom: 30%;
+		}
+	}
+
+	@media (max-width: 620px) {
+		.hero-copy {
+			max-width: 24rem;
+		}
+
+		.hero-lede {
+			font-size: 0.95rem;
+			line-height: 1.65;
+		}
+
+		.hero-chips li {
+			font-size: 0.52rem;
+			padding: 0.3rem 0.55rem 0.28rem;
+		}
+
+		/* The copy runs wider than the flowers on phones, so the paper window
+		   behind it gets wider too. */
+		.hero-scrim {
+			background: radial-gradient(
+				ellipse 68% 42% at 50% 52%,
+				rgb(241 232 218 / 0.9) 0%,
+				rgb(241 232 218 / 0.72) 58%,
+				rgb(241 232 218 / 0.2) 88%,
+				transparent 100%
+			);
+		}
+
+		.tunnel-emoji {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero {
+			height: auto;
+		}
+
+		.hero-stage {
+			position: relative;
+			height: auto;
+			min-height: 92svh;
+			padding-block: clamp(5rem, 10vh, 7rem) 5rem;
+		}
+
+		.hero-end {
+			display: none;
+		}
+
+		.doodle,
+		.tunnel-emoji .bob {
+			animation: none;
 		}
 	}
 
@@ -892,18 +1068,6 @@
 	}
 
 	@media (min-width: 720px) {
-		.hero-inner {
-			grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-		}
-
-		.hero-art {
-			max-width: none;
-		}
-
-		.scroll-cue {
-			display: flex;
-		}
-
 		.step-row {
 			grid-template-columns: 3.4rem 1fr 8rem;
 			gap: 1.5rem;

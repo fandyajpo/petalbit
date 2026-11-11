@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { splitText } from '$lib/actions/motion';
+	import { reveal } from '$lib/actions/reveal';
 
 	const status = $derived(page.status);
 	const message = $derived(
@@ -12,19 +13,19 @@
 </script>
 
 <svelte:head>
-	<title>{status} — Petalbit</title>
+	<title>{status} · Petalbit</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <section class="oops">
 	<div class="oops-inner">
-		<div class="oops-art" aria-hidden="true">
+		<div class="oops-art reveal reveal-zoom" aria-hidden="true" use:reveal>
 			<span class="code">{status}</span>
 			<img src="/art/flowers/mawar.png" alt="" width="450" height="696" />
 			<span class="floor"></span>
 		</div>
 
-		<div class="oops-copy">
+		<div class="oops-copy reveal" use:reveal={{ delay: 120 }}>
 			<p class="eyebrow">Halaman tidak ditemukan</p>
 			<h1 use:splitText={{ step: 55 }}>{heading}</h1>
 			<p class="msg">{message}</p>

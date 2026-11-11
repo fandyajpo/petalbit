@@ -23,7 +23,7 @@
 	const samples = [
 		'Semoga harimu seindah bunga ini.',
 		'Terima kasih sudah ada, selalu.',
-		'Kecil, tapi tulus — seperti bunga ini.'
+		'Kecil, tapi tulus, seperti bunga ini.'
 	];
 
 	function initialSelection(): string[] {
@@ -211,7 +211,7 @@
 </script>
 
 <svelte:head>
-	<title>Buat Buket — Petalbit</title>
+	<title>Buat Buket · Petalbit</title>
 	<meta
 		name="description"
 		content="Rangkai buket bunga digital dalam tiga langkah: pilih bunga, tulis pesan, lalu bagikan tautannya. Gratis dan bertahan 7 hari."
@@ -230,14 +230,14 @@
 			{#if result}
 				Satu tautan kecil, satu pesan besar. Bagikan sekarang sebelum tujuh hari berlalu.
 			{:else}
-				Pilih bunga, tulis pesan, lalu kirimkan. Tidak perlu akun — buketmu hidup selama tujuh
+				Pilih bunga, tulis pesan, lalu kirimkan. Tidak perlu akun. Buketmu hidup selama tujuh
 				hari.
 			{/if}
 		</p>
 	</header>
 
 	{#if result}
-		<div class="success">
+		<div class="success reveal" use:reveal>
 			<div class="success-art">
 				<Bouquet flowers={selected} animate />
 				<span class="success-sticker">untuk {recipient.trim() || 'kamu'}</span>
@@ -503,7 +503,7 @@
 					<div class="panel-head">
 						<div>
 							<h2>Tinjau buketmu</h2>
-							<p>Periksa sekali lagi — setelah ini buketmu langsung bisa dibagikan.</p>
+							<p>Periksa sekali lagi. Setelah ini buketmu langsung bisa dibagikan.</p>
 						</div>
 					</div>
 
@@ -607,7 +607,7 @@
 				</div>
 			</div>
 
-			<aside class="preview" aria-label="Pratinjau buket">
+			<aside class="preview reveal" aria-label="Pratinjau buket" use:reveal={{ delay: 120 }}>
 				<div class="preview-card">
 					<div class="preview-top">
 						<span class="preview-eyebrow">Pratinjau</span>
@@ -1838,6 +1838,29 @@
 	}
 
 	@media (max-width: 470px) {
+		/* Two small cards still fit a 320px screen, and browsing nine flowers
+		   one column at a time is a slog. */
+		.pick-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.45rem;
+		}
+
+		.pick-art {
+			height: 100px;
+		}
+
+		.pick-art img {
+			height: 96px;
+		}
+
+		.pick-name {
+			font-size: 0.92rem;
+		}
+
+		.pick-desc {
+			font-size: 0.6rem;
+		}
+
 		.stepper-item {
 			justify-content: center;
 			padding-inline: 0.35rem;

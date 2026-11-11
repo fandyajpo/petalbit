@@ -9,7 +9,7 @@
 		<div class="brand-col">
 			<Brand inverted showTagline />
 			<p class="desc">
-				Generator buket bunga digital gratis. Rangkai dengan pixel, kirim dengan hati — tanpa akun,
+				Generator buket bunga digital gratis. Rangkai dengan pixel, kirim dengan hati. Tanpa akun,
 				tanpa biaya.
 			</p>
 			<a class="top-link mono" href="#top">Kembali ke atas ↑</a>

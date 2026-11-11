@@ -6,6 +6,7 @@
 	import FloatingPetals from '$lib/components/FloatingPetals.svelte';
 	import { getFlower } from '$lib/data/flowers';
 	import { splitText } from '$lib/actions/motion';
+	import { reveal } from '$lib/actions/reveal';
 
 	let { data }: { data: PageData } = $props();
 
@@ -37,10 +38,10 @@
 </script>
 
 <svelte:head>
-	<title>{bouquet.recipient} menerima buket dari {bouquet.sender} — Petalbit</title>
+	<title>{bouquet.recipient} menerima buket dari {bouquet.sender} · Petalbit</title>
 	<meta
 		name="description"
-		content={`“${bouquet.message.slice(0, 120)}” — buket bunga digital dari ${bouquet.sender} untuk ${bouquet.recipient}.`}
+		content={`“${bouquet.message.slice(0, 120)}” Buket bunga digital dari ${bouquet.sender} untuk ${bouquet.recipient}.`}
 	/>
 	<meta name="robots" content="noindex" />
 	<meta property="og:title" content={`${bouquet.sender} mengirim buket untuk ${bouquet.recipient}`} />
@@ -56,14 +57,14 @@
 		<FloatingPetals count={5} />
 	</div>
 
-	<header class="share-head">
+	<header class="share-head reveal" use:reveal>
 		<p class="eyebrow">Buket digital · {flowers.length} tangkai</p>
 		<h1 use:splitText={{ step: 60 }}>Untuk <em>{bouquet.recipient}</em>.</h1>
 		<p class="sub">Dikirim oleh {bouquet.sender} · {data.createdLabel}</p>
 	</header>
 
 	<div class="share-grid">
-		<div class="art-wrap">
+		<div class="art-wrap reveal reveal-zoom" use:reveal={{ delay: 80 }}>
 			<div class="art">
 				<span class="art-seal" aria-hidden="true">
 					<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
@@ -73,7 +74,7 @@
 			<p class="art-note">Dirangkai pixel per pixel, khusus untukmu.</p>
 		</div>
 
-		<article class="letter">
+		<article class="letter reveal" use:reveal={{ delay: 160 }}>
 			<div class="letter-top">
 				<span class="letter-mark">{initial}</span>
 				<span class="letter-label">Pesan spesial</span>
@@ -86,7 +87,7 @@
 				<p>{bouquet.message}</p>
 			</blockquote>
 
-			<p class="letter-sign">— {bouquet.sender}</p>
+			<p class="letter-sign">Dari {bouquet.sender}</p>
 
 			<ul class="flower-tags">
 				{#each flowers as flower (flower.id)}
@@ -108,13 +109,13 @@
 				</svg>
 				<p>
 					Buket ini hanya bertahan selama 7 hari setelah dibuat. Setelah itu, buket dan pesanmu
-					akan menghilang secara otomatis — pada <strong>{data.expiresLabel}</strong>.
+					akan menghilang secara otomatis pada <strong>{data.expiresLabel}</strong>.
 				</p>
 			</div>
 		</article>
 	</div>
 
-	<div class="share-cta">
+	<div class="share-cta reveal" use:reveal>
 		<div>
 			<p class="cta-title">Mau mengirim buketmu sendiri?</p>
 			<p class="cta-sub">Tiga langkah, satu menit, tanpa akun.</p>

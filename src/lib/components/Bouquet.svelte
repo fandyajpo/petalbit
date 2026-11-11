@@ -179,7 +179,7 @@
 	<div class="ground" aria-hidden="true"></div>
 
 	<div class="layer paper" aria-hidden="true">
-		<img src="/art/bouquet-paper.png" alt="" width="460" height="330" class="pixelated" />
+		<img src="/art/bouquet-paper.png" alt="" width="1380" height="990" class="pixelated" />
 	</div>
 
 	{#if greenery && eucalyptus}
@@ -235,9 +235,15 @@
 		</div>
 	{/each}
 
+	<!-- Front face of the wrap: hides the stems below the fold, so the paper
+	     reads as something the bouquet sits inside, not behind. -->
+	<div class="layer paper-front" aria-hidden="true">
+		<img src="/art/bouquet-paper-front.png" alt="" width="1380" height="990" class="pixelated" />
+	</div>
+
 	{#if ribbon}
 		<div class="layer ribbon" aria-hidden="true">
-			<img src="/art/bouquet-ribbon.png" alt="" width="460" height="330" class="pixelated" />
+			<img src="/art/bouquet-ribbon.png" alt="" width="1380" height="990" class="pixelated" />
 		</div>
 	{/if}
 
@@ -256,10 +262,11 @@
 
 	.glow {
 		position: absolute;
-		inset: 6% 2% 14%;
+		inset: 4% 0 10%;
+		border-radius: 50%;
 		background:
-			radial-gradient(circle at 50% 42%, rgb(242 214 212 / 0.85), transparent 62%),
-			radial-gradient(circle at 32% 62%, rgb(233 168 179 / 0.4), transparent 55%);
+			radial-gradient(closest-side at 50% 46%, rgb(242 214 212 / 0.85), rgb(242 214 212 / 0) 100%),
+			radial-gradient(closest-side at 34% 64%, rgb(233 168 179 / 0.32), rgb(233 168 179 / 0) 100%);
 		z-index: 0;
 	}
 
@@ -291,6 +298,10 @@
 
 	.paper {
 		z-index: 2;
+	}
+
+	.paper-front {
+		z-index: 60;
 	}
 
 	.ribbon {

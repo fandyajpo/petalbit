@@ -453,8 +453,10 @@ const P = {
 	irisDeep: ramp(272, 0.5, 0.16, 0.56, 8),
 	irisPale: ramp(280, 0.28, 0.56, 0.95, 9, { hueShift: 8 }),
 	beard: ramp(46, 0.85, 0.5, 0.98, 7),
-	paper: ramp(34, 0.24, 0.55, 0.95, 8, { hueShift: 8 }),
-	ribbon: ramp(352, 0.42, 0.22, 0.82, 8, { hueShift: 8 })
+	paper: ramp(34, 0.24, 0.55, 0.95, 12, { hueShift: 8 }),
+	paperCrease: ramp(32, 0.2, 0.34, 0.66, 7, { hueShift: 6 }),
+	ribbon: ramp(352, 0.42, 0.22, 0.82, 8, { hueShift: 8 }),
+	ribbonCrease: ramp(350, 0.4, 0.18, 0.48, 6),
 };
 
 /* ---------------------------------------------------------------- flowers */
@@ -1691,51 +1693,270 @@ function drawPetalSprite(color, seed) {
 	return img;
 }
 
+/** A soft, irregular sheet of wrapping paper in art units (460 x 330). */
+function paperSheetOutline(sheet) {
+	const { tieX, tieY, tipX, tipY, halfBase, halfTop, bow, wobble, seed } = sheet;
+	const segs = 9;
+	const left = [];
+	const right = [];
+
+	const along = (v) => tieY + (tipY - tieY) * Math.pow(v, 1.04);
+	const across = (v) => tieX + (tipX - tieX) * Math.pow(v, 0.9);
+	const bowAt = (v) => Math.sin(Math.PI * Math.pow(v, 0.8)) * bow;
+
+	const halfAt = (v) => {
+		const grow = halfBase + (halfTop - halfBase) * Math.pow(v, 0.56);
+		/* Round the top corners off, so each sheet reads as soft paper and not
+		   as a cut triangle blade. */
+		const round = 0.7;
+		if (v <= round) return grow;
+		const t = Math.min(1, (v - round) / (1 - round));
+		return grow * (0.58 + 0.42 * Math.sqrt(Math.max(0, 1 - t * t)));
+	};
+
+	for (let k = 0; k <= segs; k++) {
+		const v = k / segs;
+		const rough = (hash(k, seed, 911) - 0.5) * wobble * v;
+		const half = Math.max(halfBase * 0.6, halfAt(v) + rough * 0.4);
+		const y = along(v) + rough;
+		const x = across(v);
+		left.push([x - half - bowAt(v), y]);
+		right.push([x + half + bowAt(v), y]);
+	}
+
+	/* Rounded crest instead of a ruled straight edge. */
+	const top = [];
+	const [lx, ly] = left[left.length - 1];
+	const [rx, ry] = right[right.length - 1];
+	for (let k = 1; k < 5; k++) {
+		const u = k / 5;
+		top.push([
+			lx + (rx - lx) * u,
+			ly + (ry - ly) * u + Math.sin(Math.PI * u) * (2 + wobble * 1.4)
+		]);
+	}
+
+	return [...left, ...top, ...right.slice().reverse()];
+}
+
+/** Smooth outer silhouette of the wrap: one soft dome with a gently ruffled crest. */
+function paperEnvelope(tieX, tieY) {
+	const crestY = (u) => {
+		const e = Math.abs(u);
+		const dome = 84 + Math.pow(e, 2.2) * 44;
+		const ripple = Math.sin(u * Math.PI * 2.2 + 0.9) * 2.4;
+		/* round the shoulders off instead of ending the crest in a point */
+		const shoulder = 30 * Math.pow(clamp01((e - 0.82) / 0.18), 1.6);
+		return dome + ripple + shoulder;
+	};
+	const halfW = (u) => 158 + Math.sin(u * Math.PI * 2.3 + 1.1) * 4;
+
+	const top = [];
+	for (let k = 0; k <= 30; k++) {
+		const u = (k / 30) * 2 - 1;
+		top.push([tieX + u * halfW(u), crestY(u)]);
+	}
+
+	/* Sides fall away convex, then gather into a small rounded bunch at the tie. */
+	const left = [];
+	const cornerY = crestY(-1);
+	const gatherY = tieY - 8;
+	const gatherHalf = 16;
+	for (let k = 1; k <= 12; k++) {
+		const t = k / 12;
+		const half = gatherHalf + (halfW(-1) - gatherHalf) * Math.pow(1 - t, 0.72);
+		left.push([tieX - half, cornerY + (gatherY - cornerY) * t]);
+	}
+	const right = left.map(([x, y]) => [2 * tieX - x, y]);
+
+	/* rounded bottom */
+	const bottom = [];
+	for (let k = 1; k < 5; k++) {
+		const a = Math.PI * (1 - k / 5);
+		bottom.push([tieX + Math.cos(a) * gatherHalf, gatherY + Math.sin(a) * 4]);
+	}
+
+	return [...top, ...right, ...bottom, ...left.slice().reverse()];
+}
+
+/** Zero out everything outside a polygon (soft, single continuous silhouette). */
+function clipToPolygon(img, points) {
+	const s = img.s;
+	const pts = points.map(([x, y]) => [x * s, y * s]);
+	const mask = new Uint8Array(img.w * img.h);
+
+	let minY = Infinity;
+	let maxY = -Infinity;
+	for (const [, y] of pts) {
+		minY = Math.min(minY, y);
+		maxY = Math.max(maxY, y);
+	}
+
+	for (let y = Math.max(0, Math.floor(minY)); y <= Math.min(img.h - 1, Math.ceil(maxY)); y++) {
+		const scan = y + 0.5;
+		const xs = [];
+		for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+			const [xi, yi] = pts[i];
+			const [xj, yj] = pts[j];
+			if (yi > scan === yj > scan) continue;
+			xs.push(xi + ((scan - yi) / (yj - yi)) * (xj - xi));
+		}
+		if (xs.length < 2) continue;
+		xs.sort((a, b) => a - b);
+		for (let k = 0; k + 1 < xs.length; k += 2) {
+			const x0 = Math.max(0, Math.ceil(xs[k] - 0.5));
+			const x1 = Math.min(img.w - 1, Math.floor(xs[k + 1] - 0.5));
+			for (let x = x0; x <= x1; x++) mask[y * img.w + x] = 1;
+		}
+	}
+
+	for (let i = 0; i < mask.length; i++) {
+		if (mask[i]) continue;
+		img.a[i] = 0;
+		img.rgb[i * 3] = img.rgb[i * 3 + 1] = img.rgb[i * 3 + 2] = 0;
+	}
+}
+
 function drawBouquetPaper() {
 	const w = 460;
 	const h = 330;
-	const img = new Img(w, h);
+	const PS = 3; // same pixel density as the flower sprites
+	const img = new Img(w * PS, h * PS, PS);
 	const tieX = w / 2;
 	const tieY = h - 6;
-	const topY = 86;
-	const halfTop = 150;
 
-	// fanned sheets of paper
-	const sheets = 11;
-	for (let i = 0; i < sheets; i++) {
+	const sheets = 16;
+	const list = Array.from({ length: sheets }, (_, i) => {
 		const t = i / (sheets - 1);
-		const edge = Math.abs(t - 0.5) * 2;
-		const tipX = tieX + (t - 0.5) * halfTop * 2 * 0.96;
-		const rimY = topY + edge * 30 + hash(i, 7, 401) * 12;
-		const pts = [
-			[tieX, tieY],
-			[tipX - 30, rimY],
-			[tipX + 30, rimY + 4]
-		];
-		const shade = 0.44 + 0.38 * (1 - edge) + (i % 2) * 0.05;
+		const a = (t - 0.5) * 2;
+		const edge = Math.abs(a);
+		const jitter = hash(i, 3, 77);
+		return {
+			i,
+			a,
+			edge,
+			jitter,
+			tipX: tieX + a * (142 + jitter * 8),
+			/* Sheets run past the top: the envelope below trims them into one
+			   soft dome, so folds end at the silhouette instead of stacking tips. */
+			tipY: 22 + Math.pow(edge, 1.4) * 12,
+			halfBase: 4.6,
+			halfTop: 36 + (1 - edge) * 14 + jitter * 5,
+			bow: 9 + edge * 8,
+			wobble: 0.9 + jitter * 0.8,
+			seed: 400 + i
+		};
+	});
+
+	/* Outermost sheets first, so the middle of the wrap sits on top. */
+	const order = [...list].sort((p, q) => q.edge - p.edge);
+
+	for (const sheet of order) {
+		const { i, edge, jitter, tipX, tipY, halfTop, seed } = sheet;
+		const pts = paperSheetOutline({
+			tieX,
+			tieY,
+			tipX,
+			tipY,
+			halfBase: sheet.halfBase,
+			halfTop,
+			bow: sheet.bow,
+			wobble: sheet.wobble,
+			seed
+		});
+
+		const depth = 0.6 - edge * 0.1 + (jitter - 0.5) * 0.05;
 		poly(img, pts, {
 			ramp: P.paper,
+			seed,
+			/* Light from the upper left, warm where the sheets overlap. */
 			shadeFn: (x, y) => {
-				const d = Math.abs(x - tieX) / (halfTop + 30);
-				return clamp01(shade - d * 0.16 + (1 - (tieY - y) / (tieY - topY)) * 0.05);
-			},
-			seed: 400 + i
+				const across = (x - tieX) / 168;
+				const up = clamp01((tieY - y) / (tieY - 60));
+				const lit = 0.5 + 0.5 * (across * LIGHT[0] + (y - tieY) / 300 * LIGHT[1]);
+				const fold = Math.sin((x - tieX) * 0.09 + up * 3.1 + i * 1.7) * 0.035 * up;
+				return clamp01(depth + up * 0.34 * lit - Math.abs(across) * 0.1 + fold);
+			}
 		});
+
+		/* A couple of soft creases per sheet: paper folds, it doesn't crease hard. */
+		for (let k = 0; k < 2; k++) {
+			const lane = (k - 0.5) * 0.72 + (hash(i, k, 31) - 0.5) * 0.3;
+			stroke(
+				img,
+				[
+					[tieX + lane * 14, tieY - 40],
+					[tieX + (tipX - tieX) * 0.42 + lane * halfTop * 0.66, tieY + (tipY - tieY) * 0.42],
+					[tipX + lane * halfTop * 0.8, tipY + (hash(i, k, 55) - 0.5) * 6]
+				],
+				{
+					width: 2.2,
+					widthEnd: 1,
+					ramp: P.paperCrease,
+					alpha: 0.085,
+					dither: 0.5,
+					shade: 1,
+					seed: 460 + i * 3 + k
+				}
+			);
+		}
 	}
 
-	// side flaps for volume
-	for (const side of [-1, 1]) {
-		const pts = [
-			[tieX, tieY],
-			[tieX + side * halfTop * 1.02, topY + 44],
-			[tieX + side * halfTop * 0.6, topY + 18],
-			[tieX + side * 26, tieY - 26]
-		];
-		poly(img, pts, {
-			ramp: P.paper,
-			shadeFn: (x) => 0.32 + (1 - Math.abs(x - tieX) / halfTop) * 0.4,
-			seed: 420 + side
-		});
+	/* Trim the stacked sheets to one smooth dome, so the wrap has a soft
+	   silhouette instead of a row of stepped sheet tips. */
+	clipToPolygon(img, paperEnvelope(tieX, tieY));
+
+	/* Bunched paper around the tie: a soft shadow that rounds the bottom. */
+	for (let y = Math.floor((tieY - 110) * PS); y < img.h; y++) {
+		for (let x = 0; x < img.w; x++) {
+			const idx = y * img.w + x;
+			if (img.a[idx] < 0.5) continue;
+			const ax = x / PS;
+			const ay = y / PS;
+			const near = Math.hypot(ax - tieX, (ay - tieY) * 1.9) / 74;
+			if (near > 1) continue;
+			const alpha = Math.pow(1 - near, 2) * 0.3;
+			img.blend(x, y, mix(P.paper[1], [96, 74, 62], 0.55), alpha);
+		}
+	}
+
+	return img;
+}
+
+/**
+ * Front face of the wrap: the same paper, trimmed along a soft concave fold so
+ * it can sit in front of the stems (paper wraps the bunch, it isn't behind it).
+ */
+function drawBouquetPaperFront(back, tieX) {
+	const img = new Img(back.w, back.h, back.s);
+	img.rgb.set(back.rgb);
+	img.a.set(back.a);
+	const PS = back.s;
+
+	const edgeY = (ax) => {
+		const u = (ax - tieX) / 158;
+		return 246 - 64 * Math.pow(Math.abs(u), 1.25) + Math.sin(ax * 0.06 + 1.3) * 2.4;
+	};
+	const rim = mix(P.paper[10], [255, 252, 245], 0.5);
+	const under = mix(P.paper[3], [92, 72, 58], 0.35);
+
+	for (let y = 0; y < img.h; y++) {
+		for (let x = 0; x < img.w; x++) {
+			const i = y * img.w + x;
+			if (img.a[i] < 0.5) continue;
+			const ax = (x + 0.5) / PS;
+			const ay = (y + 0.5) / PS;
+			const d = ay - edgeY(ax);
+			if (d <= 0) {
+				img.a[i] = 0;
+				img.rgb[i * 3] = img.rgb[i * 3 + 1] = img.rgb[i * 3 + 2] = 0;
+				continue;
+			}
+			/* lit fold edge, soft shadow under it, then the shaded front face */
+			if (d < 2.4) img.blend(x, y, rim, 0.45 * (1 - d / 2.4));
+			else if (d < 14) img.blend(x, y, under, 0.17 * (1 - (d - 2.4) / 11.6));
+			img.blend(x, y, P.paper[5], 0.05);
+		}
 	}
 
 	return img;
@@ -1744,56 +1965,104 @@ function drawBouquetPaper() {
 function drawBouquetRibbon() {
 	const w = 460;
 	const h = 330;
-	const img = new Img(w, h);
+	const PS = 3;
+	const img = new Img(w * PS, h * PS, PS);
 	const tieX = w / 2;
 	const tieY = h - 6;
 	const bandY = tieY - 96;
-	const bandPts = [
-		[tieX - 42, bandY - 12],
-		[tieX + 42, bandY - 12],
-		[tieX + 52, bandY + 14],
-		[tieX - 52, bandY + 14]
-	];
+
+	/* The band curves around the wrap: its edges bow down in the middle. */
+	const bandPts = [];
+	const bandSegs = 14;
+	const halfAt = (v) => 40 + v * 12;
+	const bandTop = (u) => bandY - 13 + (1 - u * u) * 4;
+	const bandBottom = (u) => bandY + 15 + (1 - u * u) * 5;
+	for (let k = 0; k <= bandSegs; k++) {
+		const u = k / bandSegs;
+		const s = u * 2 - 1;
+		bandPts.push([tieX + s * halfAt(1), bandBottom(s)]);
+	}
+	for (let k = bandSegs; k >= 0; k--) {
+		const u = k / bandSegs;
+		const s = u * 2 - 1;
+		bandPts.push([tieX + s * halfAt(0), bandTop(s)]);
+	}
 	poly(img, bandPts, {
 		ramp: P.ribbon,
-		shadeFn: (x, y) => 0.42 + 0.35 * (1 - Math.abs(x - tieX) / 60) - (y - bandY) * 0.004,
+		shadeFn: (x, y) => 0.5 + 0.32 * (1 - Math.abs(x - tieX) / 54) - (y - bandY) * 0.006,
 		seed: 430
 	});
 
-	// bow loops
+	/* Bow loops */
 	for (const side of [-1, 1]) {
 		petal(img, {
-			cx: tieX + side * 34,
-			cy: bandY - 4,
-			rx: 34,
+			cx: tieX + side * 33,
+			cy: bandY - 5,
+			rx: 35,
 			ry: 17,
-			rot: side * 0.35,
-			power: 1.9,
+			rot: side * 0.33,
+			power: 2.1,
 			ramp: P.ribbon,
 			rimPx: 1.4,
-			rimMul: 0.6,
+			rimMul: 0.62,
+			insideWarm: 0.12,
 			seed: 440 + side
 		});
-	}
-	// hanging tails
-	for (const side of [-1, 1]) {
-		poly(
+		/* soft crease down the middle of each loop */
+		stroke(
 			img,
 			[
-				[tieX + side * 4, bandY + 6],
-				[tieX + side * 26, bandY + 10],
-				[tieX + side * (side > 0 ? 40 : 44), bandY + 66],
-				[tieX + side * (side > 0 ? 20 : 26), bandY + 58]
+				[tieX + side * 6, bandY - 3],
+				[tieX + side * 30, bandY - 9],
+				[tieX + side * 56, bandY - 2]
 			],
-			{
-				ramp: P.ribbon,
-				shadeFn: (x) => 0.34 + 0.28 * (1 - Math.abs(x - tieX) / 60),
-				seed: 450 + side
-			}
+			{ width: 2.4, widthEnd: 0.8, ramp: P.ribbonCrease, alpha: 0.22, seed: 480 + side }
 		);
 	}
-	// knot
-	petal(img, { cx: tieX, cy: bandY + 1, rx: 13, ry: 11, ramp: P.ribbon, rimPx: 1.2, rimMul: 0.55, seed: 460 });
+
+	/* Hanging tails: curved spines with a soft taper, not trapezoid blades. */
+	for (const side of [-1, 1]) {
+		const p0 = [tieX + side * 3, bandY + 6];
+		const p1 = [tieX + side * 26, bandY + 20];
+		const p2 = [tieX + side * (42 + (side > 0 ? 2 : 4)), bandY + 70];
+		const segs = 10;
+		const spine = [];
+		for (let k = 0; k <= segs; k++) {
+			const t = k / segs;
+			const it = 1 - t;
+			spine.push([
+				it * it * p0[0] + 2 * it * t * p1[0] + t * t * p2[0],
+				it * it * p0[1] + 2 * it * t * p1[1] + t * t * p2[1]
+			]);
+		}
+		const left = [];
+		const right = [];
+		for (let k = 0; k <= segs; k++) {
+			const t = k / segs;
+			const [x, y] = spine[k];
+			const wdt = (5.5 + t * 6.5) * (1 + Math.sin(t * Math.PI) * 0.22);
+			left.push([x - side * wdt, y]);
+			right.push([x + side * wdt * 0.75, y - 1.5]);
+		}
+		poly(img, [...left, ...right.reverse()], {
+			ramp: P.ribbon,
+			shadeFn: (x, y) => 0.42 + 0.26 * (1 - Math.abs(x - tieX) / 62) + (bandY + 60 - y) * 0.0016,
+			seed: 450 + side
+		});
+	}
+
+	/* knot */
+	petal(img, {
+		cx: tieX,
+		cy: bandY + 1,
+		rx: 13,
+		ry: 11,
+		ramp: P.ribbon,
+		rimPx: 1.2,
+		rimMul: 0.55,
+		insideWarm: 0.16,
+		seed: 460
+	});
 	return img;
 }
 
@@ -1912,7 +2181,7 @@ function blitTransformed(dst, src, opts) {
 	}
 }
 
-function drawOgImage(paper, ribbon, sprites) {
+function drawOgImage(paper, paperFront, ribbon, sprites) {
 	const w = 1200;
 	const h = 630;
 	const img = new Img(w, h);
@@ -1938,7 +2207,8 @@ function drawOgImage(paper, ribbon, sprites) {
 	const stageH = stageW * 1.02;
 	const cx = w / 2;
 	const stageTop = h - 4 - stageH;
-	const paperScale = stageW / 460;
+	/* Bouquet art is authored in a 460 x 330 box (rendered at 3x). */
+	const paperScale = stageW / 460 / (paper.w / 460);
 	const paperBottom = stageTop + stageH * 0.985;
 	const flowerScale = (stageW * 0.43) / sprites.mawar.w;
 	const flowerBottom = stageTop + stageH * 0.86;
@@ -1980,6 +2250,7 @@ function drawOgImage(paper, ribbon, sprites) {
 		});
 	}
 
+	blitTransformed(img, paperFront, { cx, cy: paperBottom, scale: paperScale });
 	blitTransformed(img, ribbon, { cx, cy: paperBottom, scale: paperScale });
 
 	const petalsOg = [
@@ -2047,8 +2318,10 @@ console.log('Rendering Petalbit art…');
 for (const [id, img] of flowers) save(`static/art/flowers/${id}.png`, img);
 
 const paperSheet = drawBouquetPaper();
+const paperFront = drawBouquetPaperFront(paperSheet, 460 / 2);
 const ribbonSheet = drawBouquetRibbon();
 save('static/art/bouquet-paper.png', paperSheet);
+save('static/art/bouquet-paper-front.png', paperFront);
 save('static/art/bouquet-ribbon.png', ribbonSheet);
 save('static/art/logo-mark.png', drawLogoMark());
 save('static/favicon.png', drawFavicon());
@@ -2065,7 +2338,7 @@ const ogSprites = Object.fromEntries(flowers);
 petals.forEach((sprite, i) => {
 	ogSprites[`og-petal-${i + 1}`] = sprite;
 });
-save('static/og.png', drawOgImage(paperSheet, ribbonSheet, ogSprites));
+save('static/og.png', drawOgImage(paperSheet, paperFront, ribbonSheet, ogSprites));
 
 save('static/art/_sheet.png', sheet(flowers.map((f) => f[1]), 4, W * SS + 10, H * SS + 6, [247, 240, 231]));
 

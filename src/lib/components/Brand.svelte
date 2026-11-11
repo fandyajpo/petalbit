@@ -9,7 +9,7 @@
 	let { size = 'md', inverted = false, href = '/', showTagline = false }: Props = $props();
 </script>
 
-<a {href} class="brand" class:inverted aria-label="Petalbit — ke beranda">
+<a {href} class="brand" class:inverted aria-label="Petalbit, ke beranda">
 	<span class="mark" class:mark-sm={size === 'sm'}>
 		<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
 	</span>
