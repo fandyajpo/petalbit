@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { animate } from 'motion';
 	import { page } from '$app/state';
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
@@ -11,9 +10,7 @@
 		mProgress,
 		mShake,
 		mStagger,
-		mStep,
-		reducedMotion,
-		springs
+		mStep
 	} from '$lib/actions/studio-motion';
 	import {
 		FLOWERS,
@@ -22,6 +19,7 @@
 		getFlower,
 		isFlowerId
 	} from '$lib/data/flowers';
+	import { BOUQUET_PAPERS, DEFAULT_BOUQUET_PAPER, getBouquetPaper } from '$lib/data/papers';
 	import { BOUQUET_TTL_SECONDS, fieldLimits } from '$lib/types';
 	import { validateBouquet } from '$lib/validation';
 
@@ -46,6 +44,7 @@
 	let step = $state<number>(1);
 	let dir = $state(1);
 	let selected = $state<string[]>(initialSelection());
+	let paper = $state(DEFAULT_BOUQUET_PAPER);
 	let sender = $state('');
 	let recipient = $state('');
 	let message = $state('');
@@ -60,6 +59,7 @@
 	const previewFrom = $derived(sender.trim() || 'You');
 	const atLimit = $derived(selected.length >= MAX_BOUQUET_FLOWERS);
 	const progress = $derived(step / 3);
+	const selectedPaper = $derived(getBouquetPaper(paper));
 
 	const expiryLabel = $derived(
 		result
@@ -126,7 +126,7 @@
 	}
 
 	function validateStepTwo(): boolean {
-		const check = validateBouquet({ sender, recipient, message, flowers: selected });
+		const check = validateBouquet({ sender, recipient, message, flowers: selected, paper });
 		const keep: Record<string, string> = {};
 		for (const key of ['sender', 'recipient', 'message']) {
 			if (check.errors[key]) keep[key] = check.errors[key];
@@ -176,7 +176,7 @@
 
 	async function submit() {
 		if (submitting || result) return;
-		const check = validateBouquet({ sender, recipient, message, flowers: selected });
+		const check = validateBouquet({ sender, recipient, message, flowers: selected, paper });
 		if (!check.success) {
 			errors = check.errors;
 			if (check.errors.flowers) {
@@ -197,7 +197,7 @@
 			const response = await fetch('/api/bouquets', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ sender, recipient, message, flowers: selected })
+				body: JSON.stringify({ sender, recipient, message, flowers: selected, paper })
 			});
 			const data = await response.json().catch(() => null);
 
@@ -231,6 +231,7 @@
 		step = 1;
 		dir = 1;
 		selected = [];
+		paper = DEFAULT_BOUQUET_PAPER;
 		sender = '';
 		recipient = '';
 		message = '';
@@ -275,7 +276,7 @@
 	{#if result}
 		<div class="success" use:mEnter={{ y: 22, scale: 0.98, blur: 5 }}>
 			<div class="success-art">
-				<Bouquet flowers={selected} animate />
+				<Bouquet flowers={selected} {paper} animate />
 				<span class="success-sticker selectable" use:mEnter={{ y: 8, delay: 0.18 }}>for {recipient.trim() || 'you'}</span>
 			</div>
 
@@ -411,6 +412,40 @@
 								{/each}
 							</ul>
 
+							<div class="paper-picker">
+								<div class="paper-head">
+									<div>
+										<h3>Bouquet paper <span class="optional">(optional)</span></h3>
+										<p>Pick a wrap vibe. Skip it and we’ll use {getBouquetPaper(DEFAULT_BOUQUET_PAPER).name} by default.</p>
+									</div>
+									<span class="paper-current">{selectedPaper.name}</span>
+								</div>
+								<div class="paper-grid" role="radiogroup" aria-label="Bouquet paper">
+									{#each BOUQUET_PAPERS as option (option.id)}
+										<button
+											type="button"
+											class="paper-card"
+											class:selected={paper === option.id}
+											role="radio"
+											aria-checked={paper === option.id}
+											onclick={() => (paper = option.id)}
+											use:mPress={{ hoverScale: 1.02, pressScale: 0.98, lift: -1 }}
+										>
+											<span class="paper-swatch" aria-hidden="true">
+												<img src={option.paperImage} alt="" style={option.filter ? `filter:${option.filter}` : ''} />
+											</span>
+											<span class="paper-meta">
+												<span class="paper-name">{option.name}</span>
+												<span class="paper-desc">{option.description}</span>
+											</span>
+											<span class="paper-check" aria-hidden="true">
+												<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.7 9 10 3.2" stroke="currentColor" stroke-width="2.2" /></svg>
+											</span>
+										</button>
+									{/each}
+								</div>
+							</div>
+
 							{#if errors.flowers}
 								<p class="field-error notice-line" role="alert" use:mEnter={{ y: 6, blur: 2 }} use:mShake>
 									<span class="err-dot" aria-hidden="true">!</span>
@@ -545,6 +580,12 @@
 								</div>
 
 								<div class="review-row">
+									<span class="review-label">Wrap</span>
+									<div class="review-value">{selectedPaper.name} <span class="review-soft">paper</span></div>
+									<button type="button" class="edit" onclick={() => goTo(1)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
+								</div>
+
+								<div class="review-row">
 									<span class="review-label">From</span>
 									<div class="review-value selectable">{sender.trim()}</div>
 									<button type="button" class="edit" onclick={() => goTo(2)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
@@ -625,10 +666,10 @@
 					</div>
 
 					<div class="preview-art">
-						<Bouquet flowers={selected} fallback={false} greenery={selected.length > 0} />
+						<Bouquet flowers={selected} {paper} fallback={false} greenery={selected.length > 0} />
 					</div>
 
-					{#key selected.join(',') + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
+					{#key selected.join(',') + '|' + paper + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
 						<div class="preview-content" use:mEnter={{ y: 8, scale: 0.995, blur: 2, duration: 0.4 }}>
 							{#if selected.length === 0}
 								<p class="preview-empty">Pick some flowers and your bouquet will bloom right here.</p>
@@ -1230,6 +1271,150 @@
 		font-size: 0.96rem;
 	}
 
+	.review-soft {
+		color: var(--color-ink-faint);
+		font-weight: 400;
+	}
+
+	.paper-picker {
+		margin-top: 1.1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--color-rule-soft);
+	}
+
+	.paper-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.8rem;
+		margin-bottom: 0.7rem;
+	}
+
+	.paper-head h3 {
+		font-size: 1rem;
+		letter-spacing: -0.02em;
+	}
+
+	.paper-head p {
+		margin-top: 0.2rem;
+		font-size: 0.76rem;
+		line-height: 1.55;
+		color: var(--color-ink-soft);
+	}
+
+	.optional {
+		font-family: var(--font-mono);
+		font-size: 0.56rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-faint);
+	}
+
+	.paper-current {
+		font-family: var(--font-mono);
+		font-size: 0.58rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-rose-deep);
+		border: 1px solid var(--color-rule-soft);
+		border-radius: 999px;
+		padding: 0.22rem 0.5rem;
+		background: var(--color-blush-soft);
+		white-space: nowrap;
+	}
+
+	.paper-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 0.55rem;
+	}
+
+	.paper-card {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		width: 100%;
+		text-align: left;
+		border: 1px solid var(--color-rule);
+		border-radius: 12px;
+		background: var(--color-paper);
+		padding: 0.45rem 0.55rem;
+		cursor: pointer;
+		transition: border-color 220ms ease, box-shadow 240ms ease, transform 220ms var(--ease-out);
+	}
+
+	.paper-card:hover {
+		border-color: rgb(25 17 16 / 0.3);
+		box-shadow: 0 8px 18px -14px rgb(25 17 16 / 0.4);
+	}
+
+	.paper-card.selected {
+		border-color: var(--color-ink);
+		box-shadow: 0 0 0 2px rgb(25 17 16 / 0.08);
+		background: var(--color-paper-warm);
+	}
+
+	.paper-swatch {
+		width: 46px;
+		height: 46px;
+		border-radius: 10px;
+		overflow: hidden;
+		background: radial-gradient(circle at 50% 80%, rgb(236 207 202 / 0.45), transparent 70%), var(--color-cream);
+		border: 1px solid var(--color-rule-soft);
+		flex-shrink: 0;
+		display: grid;
+		place-items: end center;
+	}
+
+	.paper-swatch img {
+		width: 120%;
+		max-width: none;
+		transform: translateY(8%);
+		display: block;
+	}
+
+	.paper-meta {
+		display: grid;
+		gap: 0.08rem;
+		min-width: 0;
+	}
+
+	.paper-name {
+		font-family: var(--font-display);
+		font-size: 0.98rem;
+		font-weight: 500;
+		letter-spacing: -0.02em;
+	}
+
+	.paper-desc {
+		font-size: 0.64rem;
+		line-height: 1.4;
+		color: var(--color-ink-faint);
+	}
+
+	.paper-check {
+		position: absolute;
+		top: 0.35rem;
+		right: 0.35rem;
+		display: grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		opacity: 0;
+		transform: scale(0.5);
+		transition: opacity 180ms ease, transform 240ms var(--ease-spring);
+	}
+
+	.paper-card.selected .paper-check {
+		opacity: 1;
+		transform: scale(1);
+	}
+
 	.review-flowers {
 		list-style: none;
 		padding: 0;
@@ -1583,6 +1768,9 @@
 		.pick-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.45rem;
+		}
+		.paper-grid {
+			grid-template-columns: 1fr;
 		}
 		.pick-art {
 			height: 104px;

@@ -4,6 +4,8 @@ export type Bouquet = {
 	recipient: string;
 	message: string;
 	flowers: string[];
+	/** Optional wrap style; defaults to the first bouquet paper when missing. */
+	paper?: string;
 	createdAt: string;
 };
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { FLOWER_IDS, MAX_BOUQUET_FLOWERS } from '$lib/data/flowers';
+import { DEFAULT_BOUQUET_PAPER, PAPER_IDS } from '$lib/data/papers';
 import { fieldLimits } from '$lib/types';
 
 export const bouquetInputSchema = z.object({
@@ -24,7 +25,13 @@ export const bouquetInputSchema = z.object({
 		})
 		.min(1, 'Pick at least one flower.')
 		.max(MAX_BOUQUET_FLOWERS, `Max ${MAX_BOUQUET_FLOWERS} flowers per bouquet.`)
-		.refine((ids) => new Set(ids).size === ids.length, 'Each flower can only be picked once.')
+		.refine((ids) => new Set(ids).size === ids.length, 'Each flower can only be picked once.'),
+	paper: z
+		.preprocess(
+			(value) => (value === '' || value === null || value === undefined ? undefined : value),
+			z.enum(PAPER_IDS as [string, ...string[]]).optional()
+		)
+		.default(DEFAULT_BOUQUET_PAPER)
 });
 
 export type BouquetInput = z.infer<typeof bouquetInputSchema>;
@@ -46,6 +53,7 @@ export function validateBouquet(input: {
 	recipient: string;
 	message: string;
 	flowers: string[];
+	paper?: string;
 }) {
 	const parsed = bouquetInputSchema.safeParse(input);
 	return {

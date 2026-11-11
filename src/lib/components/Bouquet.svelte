@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { DEFAULT_BOUQUET, getFlower } from '$lib/data/flowers';
+	import { getBouquetPaper } from '$lib/data/papers';
 
 	type Props = {
 		flowers?: string[];
@@ -11,6 +12,8 @@
 		fallback?: boolean;
 		/** Show a one-time "touch the flowers" nudge until the bouquet is poked. */
 		hint?: boolean;
+		/** Bouquet wrap style id; defaults to the first paper when missing. */
+		paper?: string;
 	};
 
 	let {
@@ -20,7 +23,8 @@
 		greenery = true,
 		animate = true,
 		fallback = true,
-		hint = false
+		hint = false,
+		paper
 	}: Props = $props();
 
 	type Spark = {
@@ -168,6 +172,10 @@
 			: 'Petalbit pixel flower bouquet'
 	);
 
+	const wrapPaper = $derived(getBouquetPaper(paper));
+	const showRibbon = $derived(ribbon && wrapPaper.ribbon !== false);
+	const wrapStyle = $derived(wrapPaper.filter ? `filter:${wrapPaper.filter}` : '');
+
 	const sprigs = [
 		{ key: 'left', angle: -36, scale: 1.0, shift: -7, z: 8 },
 		{ key: 'right', angle: 35, scale: 0.96, shift: 7, z: 7 }
@@ -178,8 +186,8 @@
 	<div class="glow" aria-hidden="true"></div>
 	<div class="ground" aria-hidden="true"></div>
 
-	<div class="layer paper" aria-hidden="true">
-		<img src="/art/bouquet-paper.png" alt="" width="1380" height="990" class="pixelated" />
+	<div class="layer paper" aria-hidden="true" style={wrapStyle}>
+		<img src={wrapPaper.paperImage} alt="" width="1380" height="990" class="pixelated" />
 	</div>
 
 	{#if greenery && eucalyptus}
@@ -237,12 +245,12 @@
 
 	<!-- Front face of the wrap: hides the stems below the fold, so the paper
 	     reads as something the bouquet sits inside, not behind. -->
-	<div class="layer paper-front" aria-hidden="true">
-		<img src="/art/bouquet-paper-front.png" alt="" width="1380" height="990" class="pixelated" />
+	<div class="layer paper-front" aria-hidden="true" style={wrapStyle}>
+		<img src={wrapPaper.frontImage} alt="" width="1380" height="990" class="pixelated" />
 	</div>
 
-	{#if ribbon}
-		<div class="layer ribbon" aria-hidden="true">
+	{#if showRibbon}
+		<div class="layer ribbon" aria-hidden="true" style={wrapStyle}>
 			<img src="/art/bouquet-ribbon.png" alt="" width="1380" height="990" class="pixelated" />
 		</div>
 	{/if}

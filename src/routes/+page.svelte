@@ -170,7 +170,7 @@
 		<header class="section-head collection-head reveal" use:reveal>
 			<div>
 				<p class="eyebrow">The lineup</p>
-				<h2 class="display-lg" use:splitText={{ step: 45 }}>Nine flowers, endless vibes.</h2>
+				<h2 class="display-lg" use:splitText={{ step: 45 }}>Pixel blooms, endless vibes.</h2>
 			</div>
 			<div class="collection-aside">
 				<p class="section-sub">

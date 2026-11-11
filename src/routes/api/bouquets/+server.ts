@@ -38,6 +38,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		recipient: parsed.data.recipient,
 		message: parsed.data.message,
 		flowers: parsed.data.flowers,
+		paper: parsed.data.paper,
 		createdAt: new Date().toISOString()
 	};
 

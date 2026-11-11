@@ -69,7 +69,7 @@
 				<span class="art-seal" aria-hidden="true">
 					<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
 				</span>
-				<Bouquet flowers={bouquet.flowers} />
+				<Bouquet flowers={bouquet.flowers} paper={bouquet.paper} />
 			</div>
 			<p class="art-note">Built pixel by pixel, just for you.</p>
 		</div>
