@@ -755,16 +755,31 @@ html[data-nav='back']::view-transition-new(page-main) {
 }
 
 /* ------------------------------------------------------------ scrollbars */
-/* Keep the page scrollable, just without the visible scrollbar rail. */
+/* A thin rose rail that stays out of the way of the paper texture. */
 html,
 body {
-	scrollbar-width: none;
-	-ms-overflow-style: none;
+	scrollbar-width: thin;
+	scrollbar-color: rgb(173 54 72 / 0.45) transparent;
 }
 
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
-	display: none;
-	width: 0;
-	height: 0;
+	width: 6px;
+	height: 6px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+	background: rgb(173 54 72 / 0.45);
+	border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+	background: rgb(173 54 72 / 0.72);
 }
