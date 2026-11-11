@@ -5,6 +5,7 @@
 	import SiteHeader from '$lib/components/SiteHeader.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import RoundLines from '$lib/components/RoundLines.svelte';
+	import IntroLoader from '$lib/components/IntroLoader.svelte';
 
 	let { children } = $props();
 
@@ -70,6 +71,8 @@
 		);
 	});
 </script>
+
+<IntroLoader />
 
 {#if !isBouquetPage}
 	<RoundLines />

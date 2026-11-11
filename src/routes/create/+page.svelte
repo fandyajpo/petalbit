@@ -1860,19 +1860,21 @@
 		position: absolute;
 		z-index: 2;
 		left: 50%;
-		bottom: -0.7rem;
+		bottom: 0.9rem;
 		transform: translateX(-50%) rotate(-2deg);
-		background: var(--color-ink);
-		color: var(--color-cream);
+		background: var(--color-blush-soft);
+		color: var(--color-rose-deep);
+		border: 1px solid rgb(109 29 41 / 0.22);
 		font-family: var(--font-display);
 		font-style: italic;
 		font-size: 0.74rem;
-		padding: 0.3rem 0.65rem;
+		padding: 0.28rem 0.65rem;
 		border-radius: 8px;
 		white-space: nowrap;
 		max-width: 90%;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		box-shadow: 0 6px 14px -10px rgb(25 17 16 / 0.55);
 	}
 
 	.success-badge {

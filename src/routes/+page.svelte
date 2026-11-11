@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import FlowerTicker from '$lib/components/FlowerTicker.svelte';
-	import IntroLoader from '$lib/components/IntroLoader.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import { countUp, magnet, splitText, spotlight, tilt } from '$lib/actions/motion';
 	import { FLOWERS } from '$lib/data/flowers';
@@ -64,8 +63,6 @@
 	<meta property="og:image" content={`${page.url.origin}/og.png`} />
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
-
-<IntroLoader />
 
 <section class="hero">
 	<div class="shell hero-inner">
