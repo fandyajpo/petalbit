@@ -95,6 +95,11 @@
 		border-color: var(--color-rose);
 	}
 
+	.link:focus-visible {
+		outline: 2px solid var(--color-rose);
+		outline-offset: 2px;
+	}
+
 	.status {
 		font-size: 0.76rem;
 		color: var(--color-rose-deep);

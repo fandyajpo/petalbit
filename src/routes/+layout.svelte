@@ -5,6 +5,7 @@
 	import SiteHeader from '$lib/components/SiteHeader.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import RoundLines from '$lib/components/RoundLines.svelte';
+	import PixelButterfly from '$lib/components/PixelButterfly.svelte';
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
 
 	let { children } = $props();
@@ -76,6 +77,7 @@
 
 {#if !isBouquetPage}
 	<RoundLines />
+	<PixelButterfly />
 	<SiteHeader />
 {/if}
 <main id="top">

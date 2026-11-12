@@ -767,10 +767,16 @@
 		display: flex;
 		align-items: flex-end;
 		justify-content: space-between;
+		flex-wrap: wrap;
 		gap: 0.5rem;
 		padding: 0.6rem 0.7rem 0.72rem;
 		border-top: 1px solid var(--color-rule-soft);
 		margin-top: auto;
+	}
+
+	.card-name {
+		flex: 1 1 6.5rem;
+		min-width: 0;
 	}
 
 	.card-name h3 {
@@ -786,6 +792,11 @@
 		font-style: italic;
 		font-size: 0.72rem;
 		color: var(--color-ink-faint);
+		overflow-wrap: anywhere;
+	}
+
+	.card-meta .tag {
+		flex-shrink: 0;
 	}
 
 	.card-go {

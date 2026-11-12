@@ -14,7 +14,7 @@ export type Flower = {
 	image: string;
 	/** Short label shown on the card. */
 	tone: string;
-	/** How many times one bouquet may use this flower. */
+	/** How many instances of this flower one bouquet may hold. */
 	maxPerBouquet: number;
 	/** Flip to false to show the flower as unavailable without deleting it. */
 	available: boolean;
@@ -32,7 +32,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Layered and warm. For when words are lowkey not enough.',
 		image: '/art/flowers/mawar.png',
 		tone: 'classic',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -42,7 +42,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Big, soft, and cozy. Like a hug that showed up right on time.',
 		image: '/art/flowers/peony.png',
 		tone: 'romantic',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -52,7 +52,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Clean and chill, perfect for a sweet, simple shoutout.',
 		image: '/art/flowers/tulip.png',
 		tone: 'soft',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -62,7 +62,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Bright white with a sunny core. Always serving good vibes.',
 		image: '/art/flowers/daisy.png',
 		tone: 'cheerful',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -72,7 +72,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Big energy for someone who lights up the room, no cap.',
 		image: '/art/flowers/matahari.png',
 		tone: 'sunny',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -82,7 +82,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Elegant and graceful, a whole mood of hope and respect.',
 		image: '/art/flowers/bakung.png',
 		tone: 'elegant',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -92,7 +92,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Extra in the best way. For admiration that speaks for itself.',
 		image: '/art/flowers/anggrek.png',
 		tone: 'luxe',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -102,7 +102,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Bold and artsy, standing tall with main character energy.',
 		image: '/art/flowers/iris.png',
 		tone: 'bold',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -112,7 +112,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Calm and soothing, the vibe that just sticks with you.',
 		image: '/art/flowers/lavender.png',
 		tone: 'chill',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	},
 	{
@@ -122,7 +122,7 @@ export const FLOWERS: Flower[] = [
 		description: 'Fresh silver greens that make the whole bouquet pop.',
 		image: '/art/flowers/eukaliptus.png',
 		tone: 'greenery',
-		maxPerBouquet: 1,
+		maxPerBouquet: 4,
 		available: true
 	}
 ];

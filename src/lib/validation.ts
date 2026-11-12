@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { FLOWER_IDS, MAX_BOUQUET_FLOWERS } from '$lib/data/flowers';
+import { FLOWERS, FLOWER_IDS, MAX_BOUQUET_FLOWERS } from '$lib/data/flowers';
 import { BACKGROUND_IDS, DEFAULT_BOUQUET_BACKGROUND } from '$lib/data/backgrounds';
 import { DEFAULT_BOUQUET_PAPER, PAPER_IDS } from '$lib/data/papers';
 import { fieldLimits } from '$lib/types';
+
+const MAX_PER_FLOWER = Math.max(...FLOWERS.map((flower) => flower.maxPerBouquet));
 
 export const bouquetInputSchema = z.object({
 	sender: z
@@ -26,7 +28,12 @@ export const bouquetInputSchema = z.object({
 		})
 		.min(1, 'Pick at least one flower.')
 		.max(MAX_BOUQUET_FLOWERS, `Max ${MAX_BOUQUET_FLOWERS} flowers per bouquet.`)
-		.refine((ids) => new Set(ids).size === ids.length, 'Each flower can only be picked once.'),
+		.refine(
+			(ids) => FLOWERS.every(
+				(flower) => ids.filter((id) => id === flower.id).length <= flower.maxPerBouquet
+			),
+			`Max ${MAX_PER_FLOWER} of the same flower per bouquet.`
+		),
 	paper: z
 		.preprocess(
 			(value) => (value === '' || value === null || value === undefined ? undefined : value),

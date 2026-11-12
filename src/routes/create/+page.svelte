@@ -3,6 +3,7 @@
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
+	import FloatingBouquet from '$lib/components/FloatingBouquet.svelte';
 	import {
 		mEnter,
 		mFocus,
@@ -46,15 +47,28 @@
 		'Small but real, just like these flowers.'
 	];
 
-	function initialSelection(): string[] {
+	type Stem = { key: string; flower: string };
+
+	function makeStem(flower: string): Stem {
+		const key =
+			typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+				? crypto.randomUUID()
+				: `${flower}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+		return { key, flower };
+	}
+
+	function initialStems(): Stem[] {
 		const raw = page.url.searchParams.getAll('bunga').flatMap((value) => value.split(','));
-		const unique = Array.from(new Set(raw.map((value) => value.trim()).filter(isFlowerId)));
-		return unique.slice(0, MAX_BOUQUET_FLOWERS);
+		return raw
+			.map((value) => value.trim())
+			.filter(isFlowerId)
+			.slice(0, MAX_BOUQUET_FLOWERS)
+			.map((flower) => makeStem(flower));
 	}
 
 	let step = $state<number>(1);
 	let dir = $state(1);
-	let selected = $state<string[]>(initialSelection());
+	let stems = $state<Stem[]>(initialStems());
 	let paper = $state(DEFAULT_BOUQUET_PAPER);
 	let background = $state(DEFAULT_BOUQUET_BACKGROUND);
 	let sender = $state('');
@@ -65,8 +79,18 @@
 	let serverError = $state('');
 	let result = $state<{ id: string; url: string; expiresAt: string } | null>(null);
 
-	const canAddMore = $derived(selected.length < MAX_BOUQUET_FLOWERS);
-	const selectedFlowers = $derived(selected.flatMap((id) => getFlower(id) ?? []));
+	const canAddMore = $derived(stems.length < MAX_BOUQUET_FLOWERS);
+	const selected = $derived(stems.map((stem) => stem.flower));
+	const counts = $derived(
+		Object.fromEntries(FLOWERS.map((flower) => [flower.id, stems.filter((stem) => stem.flower === flower.id).length]))
+	);
+	const stemSummary = $derived.by(() => {
+		const plural = (name: string) =>
+			name === 'Iris' ? 'Irises' : name.endsWith('y') ? `${name.slice(0, -1)}ies` : `${name}s`;
+		return FLOWERS.filter((flower) => counts[flower.id] > 0)
+			.map((flower) => `${counts[flower.id]} ${counts[flower.id] === 1 ? flower.name : plural(flower.name)}`)
+			.join(' · ');
+	});
 	const previewFor = $derived(recipient.trim() || 'Someone special');
 	const previewFrom = $derived(sender.trim() || 'You');
 	const atLimit = $derived(selected.length >= MAX_BOUQUET_FLOWERS);
@@ -102,28 +126,39 @@
 	function toggle(id: string, event?: MouseEvent) {
 		if (result) return;
 		const btn = event?.currentTarget as HTMLElement | null;
-		if (selected.includes(id)) {
-			selected = selected.filter((item) => item !== id);
-			clearError('flowers');
+		const flower = getFlower(id);
+		const used = counts[id] ?? 0;
+		if (flower && used >= flower.maxPerBouquet) {
+			errors = {
+				...errors,
+				flowers: `${flower.name} is maxed at ${flower.maxPerBouquet}. Remove one to add another.`
+			};
+			if (btn) mShake(btn);
 			return;
 		}
 		if (!canAddMore) {
 			errors = {
 				...errors,
-				flowers: `Max ${MAX_BOUQUET_FLOWERS} stems per bouquet. Drop one first to swap.`
+				flowers: `Max ${MAX_BOUQUET_FLOWERS} stems per bouquet. Remove one first to swap.`
 			};
 			if (btn) mShake(btn);
 			return;
 		}
-		selected = [...selected, id];
+		stems = [...stems, makeStem(id)];
 		clearError('flowers');
 		if (btn) popEl(btn.querySelector('.pick-art') as HTMLElement | null);
 	}
 
 	function applyStarter(flowers: string[]) {
-		selected = [...flowers].slice(0, MAX_BOUQUET_FLOWERS);
+		stems = flowers.slice(0, MAX_BOUQUET_FLOWERS).map((flower) => makeStem(flower));
 		clearError('flowers');
 	}
+
+	function removeStem(index: number) {
+		stems = stems.filter((_, i) => i !== index);
+		clearError('flowers');
+	}
+
 
 	function isStarterActive(flowers: string[]) {
 		return flowers.length === selected.length && flowers.every((id) => selected.includes(id));
@@ -224,7 +259,7 @@
 			const response = await fetch('/api/bouquets', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ sender, recipient, message, flowers: selected, paper, background })
+			body: JSON.stringify({ sender, recipient, message, flowers: selected, paper, background })
 			});
 			const data = await response.json().catch(() => null);
 
@@ -257,7 +292,7 @@
 		result = null;
 		step = 1;
 		dir = 1;
-		selected = [];
+		stems = [];
 		paper = DEFAULT_BOUQUET_PAPER;
 		background = DEFAULT_BOUQUET_BACKGROUND;
 		sender = '';
@@ -386,7 +421,7 @@
 							<div class="panel-head">
 								<div>
 									<h2>Pick your flowers</h2>
-									<p>Choose one to seven stems. The order you pick sets their spot in the bouquet.</p>
+									<p>Add up to {MAX_BOUQUET_FLOWERS} stems. Mix flowers freely and repeat your favourites.</p>
 								</div>
 								<div class="tally" class:full={atLimit} aria-live="polite">
 									<span class="tally-num">{selected.length}<span>/{MAX_BOUQUET_FLOWERS}</span></span>
@@ -411,23 +446,23 @@
 
 							<ul class="pick-grid" use:mStagger={{ y: 18, scale: 0.97, step: 0.03, selector: 'li' }}>
 								{#each FLOWERS as flower (flower.id)}
-									{@const isSelected = selected.includes(flower.id)}
-									{@const locked = !isSelected && !canAddMore}
+									{@const count = counts[flower.id] ?? 0}
+									{@const typeMaxed = count >= flower.maxPerBouquet}
+									{@const locked = !canAddMore || typeMaxed}
 									<li>
 										<button
 											type="button"
 											class="pick"
-											class:selected={isSelected}
+											class:selected={count > 0}
 											class:locked
-											aria-pressed={isSelected}
 											disabled={!flower.available}
-											title={flower.available
-												? isSelected
-													? `Remove ${flower.name}`
-													: locked
+											title={!flower.available
+												? `${flower.name} not available yet`
+												: typeMaxed
+													? `${flower.name} maxed — remove one to add another`
+													: !canAddMore
 														? `Max ${MAX_BOUQUET_FLOWERS} stems`
-														: `Add ${flower.name}`
-												: `${flower.name} not available yet`}
+														: `Add another ${flower.name}`}
 											onclick={(e) => toggle(flower.id, e)}
 										>
 											<div class="pick-art">
@@ -445,10 +480,42 @@
 													<path d="M2 6.5 4.7 9 10 3.2" stroke="currentColor" stroke-width="2.2" />
 												</svg>
 											</span>
+											{#if count > 0}
+												<span class="pick-count" aria-hidden="true">{count}</span>
+											{/if}
 										</button>
 									</li>
 								{/each}
 							</ul>
+
+							{#if stems.length > 0}
+								<div class="stems">
+									<div class="stems-head">
+										<div>
+											<h3>Your stems</h3>
+											<p class="stems-summary">{stemSummary}</p>
+										</div>
+										<span class="stems-count">{stems.length}/{MAX_BOUQUET_FLOWERS}</span>
+									</div>
+									<ul class="stem-list">
+										{#each stems as stem, i (stem.key)}
+											{@const flower = getFlower(stem.flower)}
+											<li class="stem">
+												<span class="stem-pick">
+													<img src={flower?.image} alt="" width="450" height="696" loading="lazy" />
+													<span>{flower?.name ?? 'Stem'}</span>
+												</span>
+												<button
+													type="button"
+													class="stem-remove"
+													onclick={() => removeStem(i)}
+													aria-label={`Remove ${flower?.name ?? 'stem'}`}
+												>×</button>
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
 
 							<div class="paper-picker">
 								<div class="paper-head">
@@ -468,7 +535,7 @@
 											role="radio"
 											aria-checked={paper === option.id}
 											onclick={() => (paper = option.id)}
-											use:mPress={{ hoverScale: 1.02, pressScale: 0.98, lift: -1 }}
+											use:mPress={{ hoverScale: 1, pressScale: 0.985, lift: 0 }}
 										>
 											<span class="paper-swatch" aria-hidden="true">
 												<img src={option.paperImage} alt="" style={paperSwatchStyle(option)} />
@@ -503,7 +570,7 @@
 											role="radio"
 											aria-checked={background === option.id}
 											onclick={() => (background = option.id)}
-											use:mPress={{ hoverScale: 1.02, pressScale: 0.98, lift: -1 }}
+											use:mPress={{ hoverScale: 1, pressScale: 0.985, lift: 0 }}
 										>
 											<span class="bg-thumb" aria-hidden="true">
 												<BouquetBackground background={option.id} compact />
@@ -645,8 +712,9 @@
 									<span class="review-label">Flowers</span>
 									<div class="review-value">
 										<ul class="review-flowers">
-											{#each selectedFlowers as flower (flower.id)}
-												<li><img src={flower.image} alt="" width="450" height="696" /><span>{flower.name}</span></li>
+											{#each stems as stem (stem.key)}
+												{@const flower = getFlower(stem.flower)}
+												<li><img src={flower?.image} alt="" width="450" height="696" /><span>{flower?.name ?? 'Stem'}</span></li>
 											{/each}
 										</ul>
 									</div>
@@ -750,6 +818,7 @@
 						<Bouquet flowers={selected} {paper} fallback={false} greenery={selected.length > 0} />
 					</div>
 
+
 					{#key selected.join(',') + '|' + paper + '|' + background + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
 						<div class="preview-content" use:mEnter={{ y: 8, scale: 0.995, blur: 2, duration: 0.4 }}>
 							{#if selected.length === 0}
@@ -769,6 +838,15 @@
 				<p class="preview-note">This is a preview. Pick your options below. ↓</p>
 			</aside>
 		</div>
+
+		<FloatingBouquet
+			flowers={selected}
+			{paper}
+			{background}
+			to={previewFor}
+			from={previewFrom}
+			message={message.trim()}
+		/>
 	{/if}
 </section>
 
@@ -934,6 +1012,10 @@
 		grid-template-columns: minmax(0, 1fr);
 		gap: 1.4rem;
 		align-items: start;
+	}
+
+	.studio-grid > * {
+		min-width: 0;
 	}
 
 	.panel {
@@ -1197,6 +1279,124 @@
 		color: var(--color-rose-deep);
 		font-weight: 500;
 	}
+
+	.pick-count {
+		position: absolute;
+		top: 0.45rem;
+		left: 0.45rem;
+		min-width: 18px;
+		height: 18px;
+		padding: 0 0.3rem;
+		display: grid;
+		place-items: center;
+		border-radius: 999px;
+		background: var(--color-rose);
+		color: #fff7ef;
+		font-family: var(--font-mono);
+		font-size: 0.56rem;
+		font-weight: 700;
+		box-shadow: 0 2px 6px -2px rgb(25 17 16 / 0.5);
+	}
+
+	/* selected stems */
+	.stems {
+		margin-top: 1rem;
+		padding-top: 0.9rem;
+		border-top: 1px solid var(--color-rule-soft);
+	}
+
+	.stems-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.8rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.stems-head h3 {
+		font-size: 0.95rem;
+		letter-spacing: -0.02em;
+	}
+
+	.stems-summary {
+		margin-top: 0.15rem;
+		font-size: 0.7rem;
+		line-height: 1.5;
+		color: var(--color-ink-faint);
+	}
+
+	.stems-count {
+		font-family: var(--font-mono);
+		font-size: 0.56rem;
+		letter-spacing: 0.1em;
+		color: var(--color-rose-deep);
+		border: 1px solid var(--color-rule-soft);
+		background: var(--color-blush-soft);
+		border-radius: 999px;
+		padding: 0.2rem 0.45rem;
+		white-space: nowrap;
+	}
+
+	.stem-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+	}
+
+	.stem {
+		display: inline-flex;
+		align-items: center;
+		border: 1px solid var(--color-rule);
+		border-radius: 999px;
+		background: var(--color-paper-warm);
+		padding: 0.1rem 0.1rem 0.1rem 0.15rem;
+		transition: border-color 160ms ease, background-color 160ms ease;
+	}
+
+
+	.stem-pick {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border: 0;
+		background: none;
+		padding: 0.1rem 0.15rem;
+		font-size: 0.68rem;
+		color: var(--color-ink-soft);
+	}
+
+	.stem-pick img {
+		height: 22px;
+		width: auto;
+	}
+
+	.stem-remove {
+		display: grid;
+		place-items: center;
+		width: 20px;
+		height: 20px;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--color-ink-faint);
+		font-size: 0.9rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.stem-remove:hover {
+		background: var(--color-blush);
+		color: var(--color-rose-deep);
+	}
+
+
+
+
+
+
 
 	.notice-line {
 		margin-top: 0.85rem;
@@ -1657,6 +1857,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		flex-wrap: wrap;
 		gap: 0.8rem;
 		margin-top: 1.3rem;
 		padding-top: 1.1rem;
@@ -1861,6 +2062,9 @@
 		z-index: 2;
 		left: 50%;
 		bottom: 0.9rem;
+		max-width: calc(100% - 1.2rem);
+		overflow-wrap: anywhere;
+		text-align: center;
 		transform: translateX(-50%) rotate(-2deg);
 		background: var(--color-blush-soft);
 		color: var(--color-rose-deep);
@@ -1923,6 +2127,10 @@
 		}
 	}
 
+	.success-body h2 {
+		overflow-wrap: anywhere;
+	}
+
 	@media (min-width: 980px) {
 		.studio-grid {
 			grid-template-columns: minmax(0, 1fr) 22rem;
@@ -1938,8 +2146,7 @@
 
 	@media (max-width: 979px) {
 		.preview {
-			order: -1;
-			margin-bottom: 0.3rem;
+			display: none;
 		}
 
 		.carousel-hint {
@@ -1960,7 +2167,7 @@
 			scroll-padding-inline: 0.25rem;
 			-webkit-overflow-scrolling: touch;
 			scrollbar-width: none;
-			padding: 0.1rem 0.25rem 0.45rem;
+			padding: 0.4rem 0.25rem 0.7rem;
 			margin-inline: -0.25rem;
 		}
 

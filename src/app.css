@@ -47,6 +47,9 @@
 		scroll-behavior: smooth;
 		-webkit-text-size-adjust: 100%;
 		scroll-padding-top: 5.5rem;
+		/* Clip only intentional decorative bleed at the viewport edge; body is
+		   left scrollable so sticky/fixed elements keep working. */
+		overflow-x: clip;
 	}
 
 	/* Copy protection: prevent casual selection on non-editable UI while
@@ -82,7 +85,6 @@
 		font-weight: 400;
 		line-height: 1.6;
 		-webkit-font-smoothing: antialiased;
-		overflow-x: hidden;
 		font-feature-settings: 'ss01' 1;
 	}
 
@@ -457,6 +459,12 @@
 		border-color: var(--color-rose);
 		box-shadow: 2px 2px 0 0 var(--color-blush);
 		background: #fffdf7;
+	}
+
+	/* Keyboard focus keeps a real ring; pointer focus uses the offset shadow. */
+	.field-input:focus-visible {
+		outline: 2px solid var(--color-rose);
+		outline-offset: 2px;
 	}
 
 	.field-input[aria-invalid='true'] {

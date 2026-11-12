@@ -13,6 +13,17 @@
 
 	const bouquet = $derived(data.bouquet);
 	const flowers = $derived(bouquet.flowers.flatMap((id) => getFlower(id) ?? []));
+	const flowerGroups = $derived.by(() => {
+		const groups = new Map<string, { flower: NonNullable<ReturnType<typeof getFlower>>; count: number }>();
+		for (const id of bouquet.flowers) {
+			const flower = getFlower(id);
+			if (!flower) continue;
+			const existing = groups.get(id);
+			if (existing) existing.count += 1;
+			else groups.set(id, { flower, count: 1 });
+		}
+		return [...groups.values()];
+	});
 	const initial = $derived(bouquet.recipient.trim().charAt(0).toUpperCase() || 'B');
 
 	let remaining = $state('');
@@ -126,10 +137,13 @@
 			<p class="letter-sign">From {bouquet.sender}</p>
 
 			<ul class="flower-tags">
-				{#each flowers as flower (flower.id)}
+				{#each flowerGroups as group (group.flower.id)}
 					<li>
-						<img src={flower.image} alt="" width="450" height="696" />
-						<span>{flower.name}</span>
+						<img src={group.flower.image} alt="" width="450" height="696" />
+						<span>{group.flower.name}</span>
+						{#if group.count > 1}
+							<span class="flower-count">×{group.count}</span>
+						{/if}
 					</li>
 				{/each}
 			</ul>
@@ -172,6 +186,12 @@
 		max-width: 1120px;
 		margin: 0 auto;
 		padding: clamp(1.8rem, 4vw, 3rem) 1.25rem 1rem;
+	}
+
+	.share h1,
+	.open-title,
+	.letter-quote p {
+		overflow-wrap: anywhere;
 	}
 
 	.page-bg {
@@ -375,6 +395,14 @@
 		color: var(--color-rose-deep);
 		position: relative;
 		z-index: 1;
+	}
+
+	.flower-count {
+		font-family: var(--font-mono);
+		font-size: 0.58rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: var(--color-rose-deep);
 	}
 
 	.flower-tags {

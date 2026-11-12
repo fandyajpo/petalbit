@@ -116,7 +116,6 @@
 	const ids = $derived(
 		(flowers.length ? flowers : fallback ? DEFAULT_BOUQUET : []).filter((id) => getFlower(id))
 	);
-
 	const slots = $derived.by<Slot[]>(() => {
 		const list = ids;
 		const n = list.length;
