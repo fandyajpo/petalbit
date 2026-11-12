@@ -63,8 +63,9 @@ Set `DISCORD_BOUQUET_WEBHOOK_URL` to a Discord webhook URL and every created
 bouquet posts a short summary to that channel: sender, recipient, message,
 flowers, bouquet id, and when it expires.
 
-- The delivery is fire-and-forget. It runs after the bouquet is saved and never
-  blocks or fails the API response; failures are only logged.
+- The delivery runs after the bouquet is saved and never blocks or fails the API
+  response; failures are only logged. On Vercel it is kept alive with
+  `waitUntil`, so the webhook request still completes after the response is sent.
 - The webhook URL is read through `$env/dynamic/private` in
   `src/lib/server/discord.ts`, so it stays on the server. Leave it unset and no
   requests are made.

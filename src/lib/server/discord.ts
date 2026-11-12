@@ -2,15 +2,17 @@ import { env } from '$env/dynamic/private';
 import { BOUQUET_TTL_SECONDS, type Bouquet } from '$lib/types';
 import { getFlower } from '$lib/data/flowers';
 
-const REQUEST_TIMEOUT_MS = 4_000;
+const REQUEST_TIMEOUT_MS = 6_000;
 const COLOR_PAPER = 0xf1d3cf;
 
 /**
  * Post a heads-up to the Petalbit Discord channel when a bouquet is created.
  *
  * Implemented as a "wait until" task: the bouquet is already saved when this
- * runs, and the delivery never blocks or fails the API response. The endpoint
- * (with its token) and the shared secret stay in server-only env vars.
+ * runs, and the delivery never blocks or fails the API response. The caller is
+ * responsible for keeping the function alive (Vercel's waitUntil); otherwise the
+ * runtime can freeze it before the request leaves. The endpoint (with its token)
+ * stays in a server-only env var.
  */
 export async function notifyNewBouquet(bouquet: Bouquet, origin: string): Promise<void> {
 	const webhook = env.DISCORD_BOUQUET_WEBHOOK_URL;
@@ -25,10 +27,21 @@ export async function notifyNewBouquet(bouquet: Bouquet, origin: string): Promis
 		});
 
 		if (!response.ok) {
-			console.error('[petalbit] discord notification failed', response.status);
+			const detail = await response.text().catch(() => '');
+			console.error(
+				'[petalbit] discord notification failed',
+				response.status,
+				detail.slice(0, 200)
+			);
+			return;
 		}
+
+		console.info('[petalbit] discord notification sent');
 	} catch (error) {
-		console.error('[petalbit] discord notification failed', error);
+		console.error(
+			'[petalbit] discord notification failed',
+			error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+		);
 	}
 }
 

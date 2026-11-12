@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { waitUntil } from '@vercel/functions';
 import type { RequestHandler } from './$types';
 import { bouquetInputSchema, fieldErrors } from '$lib/validation';
 import { createBouquetId, saveBouquet } from '$lib/server/bouquet-store';
@@ -54,9 +55,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		);
 	}
 
-	// Fire and forget: the bouquet is already saved, so a failed notification
-	// must never slow down or fail the response.
-	void notifyNewBouquet(bouquet, url.origin);
+	// The bouquet is already saved, so a failed notification must never slow
+	// down or fail the response. waitUntil keeps this Vercel function alive
+	// after the response is sent, otherwise the runtime can freeze the fetch
+	// before it reaches Discord.
+	waitUntil(notifyNewBouquet(bouquet, url.origin));
 
 	return json(
 		{
