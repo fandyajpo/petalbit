@@ -28,6 +28,13 @@
 		return [...groups.values()];
 	});
 	const initial = $derived(bouquet.recipient.trim().charAt(0).toUpperCase() || 'B');
+	const cardFileName = $derived(
+		`petalbit-${(bouquet.recipient || 'bouquet')
+			.trim()
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '') || 'bouquet'}.png`
+	);
 
 	let remaining = $state('');
 	let opened = $state(false);
@@ -172,6 +179,13 @@
 					url={data.url}
 					text={`${bouquet.sender} sent a pixel bouquet to ${bouquet.recipient}.`}
 				/>
+				<a class="save-card" href={data.ogImage} download={cardFileName}>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M12 3v11M8 10l4 4 4-4M4 18v2h16v-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+					Save card
+					<span class="save-meta">PNG · 1200×630</span>
+				</a>
 			</div>
 
 			<div class="letter-expiry">
@@ -466,6 +480,39 @@
 		margin-top: 1.35rem;
 		position: relative;
 		z-index: 1;
+	}
+
+	.save-card {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 0.8rem;
+		border: 1px solid var(--color-rule);
+		border-radius: 999px;
+		background: var(--color-paper-warm);
+		padding: 0.42rem 0.7rem;
+		font-family: var(--font-mono);
+		font-size: 0.54rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-ink-soft);
+		transition:
+			background-color 180ms ease,
+			border-color 180ms ease,
+			color 180ms ease;
+	}
+
+	.save-card:hover {
+		background: var(--color-ink);
+		border-color: var(--color-ink);
+		color: var(--color-paper);
+	}
+
+	.save-meta {
+		font-size: 0.48rem;
+		letter-spacing: 0.06em;
+		opacity: 0.65;
 	}
 
 	.letter-expiry {
