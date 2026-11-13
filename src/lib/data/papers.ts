@@ -31,7 +31,8 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
 		ribbon: true,
-		layout: {}
+		// Soft cream — the original wrap colour.
+		layout: { filter: 'sepia(0.18) saturate(1.02) brightness(1.02)' }
 	},
 	{
 		id: 'envelope',
@@ -47,6 +48,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 			frontY: 4,
 			paperRotate: -1.5,
 			frontRotate: -1.5,
+			filter: 'sepia(0.45) saturate(1.05) hue-rotate(300deg) brightness(0.98)',
 			shadow: 'drop-shadow(0 10px 18px rgb(40 24 18 / 0.12))'
 		}
 	},
@@ -63,7 +65,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 			frontScale: 1.12,
 			frontY: 8,
 			paperRotate: 0,
-			filter: 'saturate(1.02) brightness(1.02)'
+			filter: 'sepia(0.4) saturate(0.85) hue-rotate(80deg) brightness(1.02)'
 		}
 	},
 	{
@@ -80,23 +82,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 			frontY: -2,
 			ribbonScale: 0.92,
 			ribbonY: -2,
-			filter: 'contrast(1.02)'
-		}
-	},
-	{
-		id: 'side-drift',
-		name: 'Side Drift',
-		description: 'A playful angled wrap with extra motion.',
-		paperImage: '/art/bouquet-paper.png',
-		frontImage: '/art/bouquet-paper-front.png',
-		ribbon: true,
-		layout: {
-			paperRotate: 6,
-			frontRotate: 6,
-			paperX: 3,
-			frontX: 3,
-			ribbonY: 1,
-			filter: 'saturate(1.03)'
+			filter: 'sepia(0.45) saturate(0.95) hue-rotate(240deg) brightness(1.02)'
 		}
 	},
 	{
@@ -112,7 +98,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 			frontScale: 1.02,
 			frontY: 12,
 			hideFront: false,
-			filter: 'brightness(1.03) saturate(1.05)'
+			filter: 'sepia(0.45) saturate(1.15) hue-rotate(320deg) brightness(1.01)'
 		}
 	}
 ];
@@ -126,7 +112,9 @@ const BY_ID = new Map(BOUQUET_PAPERS.map((paper) => [paper.id, paper]));
 const LEGACY_ALIASES: Record<string, string> = {
 	blush: 'envelope',
 	sage: 'wide-fan',
-	lilac: 'side-drift'
+	lilac: 'tall-cone',
+	// Side Drift was retired; keep old bouquets opening in a familiar wrap.
+	'side-drift': 'classic'
 };
 
 export function getBouquetPaper(id?: string | null): BouquetPaper {

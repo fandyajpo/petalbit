@@ -88,6 +88,7 @@
 					Make a bouquet
 					<span class="btn-emoji" aria-hidden="true">💐</span>
 				</a>
+				<a class="btn" href="/tutorial">Tutorial</a>
 				<a class="link-arrow" href="#bunga">Peep the lineup</a>
 			</div>
 

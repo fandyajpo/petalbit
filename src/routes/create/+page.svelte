@@ -3,6 +3,7 @@
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
+	import SocialShare from '$lib/components/SocialShare.svelte';
 	import FloatingBouquet from '$lib/components/FloatingBouquet.svelte';
 	import {
 		mEnter,
@@ -32,13 +33,14 @@
 		DEFAULT_BOUQUET_BACKGROUND,
 		getBouquetBackground
 	} from '$lib/data/backgrounds';
-	import { BOUQUET_TTL_SECONDS, fieldLimits } from '$lib/types';
+	import { BOUQUET_TTL_SECONDS, fieldLimits, type StemLayer } from '$lib/types';
 	import { validateBouquet } from '$lib/validation';
+	import { playSound } from '$lib/sound';
 
 	const steps = [
-		{ n: 1, label: 'Pick flowers' },
-		{ n: 2, label: 'Write your note' },
-		{ n: 3, label: 'Send it' }
+		{ n: 1, label: 'Flowers' },
+		{ n: 2, label: 'Note' },
+		{ n: 3, label: 'Send' }
 	] as const;
 
 	const samples = [
@@ -47,14 +49,14 @@
 		'Small but real, just like these flowers.'
 	];
 
-	type Stem = { key: string; flower: string };
+	type Stem = { key: string; flower: string; layer: StemLayer };
 
 	function makeStem(flower: string): Stem {
 		const key =
 			typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
 				? crypto.randomUUID()
 				: `${flower}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-		return { key, flower };
+		return { key, flower, layer: 'auto' };
 	}
 
 	function initialStems(): Stem[] {
@@ -81,16 +83,10 @@
 
 	const canAddMore = $derived(stems.length < MAX_BOUQUET_FLOWERS);
 	const selected = $derived(stems.map((stem) => stem.flower));
+	const layers = $derived(stems.map((stem) => stem.layer));
 	const counts = $derived(
 		Object.fromEntries(FLOWERS.map((flower) => [flower.id, stems.filter((stem) => stem.flower === flower.id).length]))
 	);
-	const stemSummary = $derived.by(() => {
-		const plural = (name: string) =>
-			name === 'Iris' ? 'Irises' : name.endsWith('y') ? `${name.slice(0, -1)}ies` : `${name}s`;
-		return FLOWERS.filter((flower) => counts[flower.id] > 0)
-			.map((flower) => `${counts[flower.id]} ${counts[flower.id] === 1 ? flower.name : plural(flower.name)}`)
-			.join(' · ');
-	});
 	const previewFor = $derived(recipient.trim() || 'Someone special');
 	const previewFrom = $derived(sender.trim() || 'You');
 	const atLimit = $derived(selected.length >= MAX_BOUQUET_FLOWERS);
@@ -145,6 +141,7 @@
 			return;
 		}
 		stems = [...stems, makeStem(id)];
+		playSound('pluck');
 		clearError('flowers');
 		if (btn) popEl(btn.querySelector('.pick-art') as HTMLElement | null);
 	}
@@ -154,9 +151,40 @@
 		clearError('flowers');
 	}
 
+	/** Roll a full bouquet — flowers, wrap and mood — then jump to the note. */
+	function surprise() {
+		if (result) return;
+		const pool = FLOWERS.filter((flower) => flower.available);
+		const target = Math.min(MAX_BOUQUET_FLOWERS, 5 + Math.floor(Math.random() * 2));
+		const picks: string[] = [];
+		const tally: Record<string, number> = {};
+
+		while (picks.length < target) {
+			const options = pool.filter((flower) => (tally[flower.id] ?? 0) < Math.min(2, flower.maxPerBouquet));
+			if (options.length === 0) break;
+			const pick = options[Math.floor(Math.random() * options.length)];
+			picks.push(pick.id);
+			tally[pick.id] = (tally[pick.id] ?? 0) + 1;
+		}
+
+		stems = picks.map((flower) => makeStem(flower));
+		paper = BOUQUET_PAPERS[Math.floor(Math.random() * BOUQUET_PAPERS.length)].id;
+		background = BOUQUET_BACKGROUNDS[Math.floor(Math.random() * BOUQUET_BACKGROUNDS.length)].id;
+		clearError('flowers');
+		dir = 1;
+		step = 2;
+		scrollToStudio();
+	}
+
 	function removeStem(index: number) {
 		stems = stems.filter((_, i) => i !== index);
 		clearError('flowers');
+	}
+
+	/** Remove the most recently added stem of this flower, straight from its tile. */
+	function removeOne(id: string) {
+		const index = stems.map((stem) => stem.flower).lastIndexOf(id);
+		if (index >= 0) removeStem(index);
 	}
 
 
@@ -180,7 +208,8 @@
 			message,
 			flowers: selected,
 			paper,
-			background
+			background,
+			layers
 		});
 		const keep: Record<string, string> = {};
 		for (const key of ['sender', 'recipient', 'message']) {
@@ -237,7 +266,8 @@
 			message,
 			flowers: selected,
 			paper,
-			background
+			background,
+			layers
 		});
 		if (!check.success) {
 			errors = check.errors;
@@ -259,7 +289,7 @@
 			const response = await fetch('/api/bouquets', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ sender, recipient, message, flowers: selected, paper, background })
+			body: JSON.stringify({ sender, recipient, message, flowers: selected, layers, paper, background })
 			});
 			const data = await response.json().catch(() => null);
 
@@ -280,6 +310,8 @@
 				url: data.url,
 				expiresAt: new Date(createdAt + BOUQUET_TTL_SECONDS * 1000).toISOString()
 			};
+			playSound('send');
+			window.dispatchEvent(new CustomEvent('petalbit:celebrate'));
 			window.scrollTo({ top: 0, behavior: 'smooth' });
 		} catch {
 			serverError = 'Connection dropped. Check your internet and try again.';
@@ -340,7 +372,7 @@
 			{#if result}
 				One tiny link, one big vibe. Send it before the seven days are up.
 			{:else}
-				Pick flowers, drop a note, and send it off. No account needed. Your bouquet lives for seven days.
+				Pick, write, send. Free, no account, and live for seven days.
 			{/if}
 		</p>
 	</header>
@@ -349,7 +381,7 @@
 		<div class="success" use:mEnter={{ y: 22, scale: 0.98, blur: 5 }}>
 			<div class="success-art">
 				<BouquetBackground background={background} />
-				<Bouquet flowers={selected} {paper} animate />
+				<Bouquet flowers={selected} {paper} {layers} animate />
 				<span class="success-sticker selectable" use:mEnter={{ y: 8, delay: 0.18 }}>for {recipient.trim() || 'you'}</span>
 			</div>
 
@@ -362,6 +394,10 @@
 
 				<div use:mEnter={{ y: 8, delay: 0.16 }}>
 					<CopyLink value={result.url} />
+					<SocialShare
+						url={result.url}
+						text={`${recipient.trim() || 'Someone'} got a pixel bouquet from ${sender.trim() || 'me'}.`}
+					/>
 				</div>
 
 				<div class="expiry" use:mEnter={{ y: 8, delay: 0.2 }}>
@@ -421,7 +457,7 @@
 							<div class="panel-head">
 								<div>
 									<h2>Pick your flowers</h2>
-									<p>Add up to {MAX_BOUQUET_FLOWERS} stems. Mix flowers freely and repeat your favourites.</p>
+									<p>Tap up to {MAX_BOUQUET_FLOWERS} stems — repeat a favourite as often as you like.</p>
 								</div>
 								<div class="tally" class:full={atLimit} aria-live="polite">
 									<span class="tally-num">{selected.length}<span>/{MAX_BOUQUET_FLOWERS}</span></span>
@@ -442,6 +478,17 @@
 										{starter.label}
 									</button>
 								{/each}
+								<button
+									type="button"
+									class="chip surprise"
+									onclick={surprise}
+									use:mPress={{ hoverScale: 1.04, pressScale: 0.96, lift: -1 }}
+								>
+									<svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+										<path d="M6 1.2 7.3 4.4 10.8 5 8.2 7.3 8.9 10.8 6 9 3.1 10.8 3.8 7.3 1.2 5 4.7 4.4 6 1.2Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" />
+									</svg>
+									Surprise me
+								</button>
 							</div>
 
 							<ul class="pick-grid" use:mStagger={{ y: 18, scale: 0.97, step: 0.03, selector: 'li' }}>
@@ -484,44 +531,24 @@
 												<span class="pick-count" aria-hidden="true">{count}</span>
 											{/if}
 										</button>
+										{#if count > 0}
+											<button
+												type="button"
+												class="pick-remove"
+												onclick={() => removeOne(flower.id)}
+												aria-label={`Remove one ${flower.name}`}
+												title={`Remove one ${flower.name}`}
+											>−</button>
+										{/if}
 									</li>
 								{/each}
 							</ul>
-
-							{#if stems.length > 0}
-								<div class="stems">
-									<div class="stems-head">
-										<div>
-											<h3>Your stems</h3>
-											<p class="stems-summary">{stemSummary}</p>
-										</div>
-										<span class="stems-count">{stems.length}/{MAX_BOUQUET_FLOWERS}</span>
-									</div>
-									<ul class="stem-list">
-										{#each stems as stem, i (stem.key)}
-											{@const flower = getFlower(stem.flower)}
-											<li class="stem">
-												<span class="stem-pick">
-													<img src={flower?.image} alt="" width="450" height="696" loading="lazy" />
-													<span>{flower?.name ?? 'Stem'}</span>
-												</span>
-												<button
-													type="button"
-													class="stem-remove"
-													onclick={() => removeStem(i)}
-													aria-label={`Remove ${flower?.name ?? 'stem'}`}
-												>×</button>
-											</li>
-										{/each}
-									</ul>
-								</div>
-							{/if}
 
 							<div class="paper-picker">
 								<div class="paper-head">
 									<div>
 										<h3>Bouquet paper <span class="optional">(optional)</span></h3>
-										<p>Pick the wrap design, not just the color. Skip it and we’ll use {getBouquetPaper(DEFAULT_BOUQUET_PAPER).name} by default.</p>
+										<p>Tap a wrap. We’ll start with {getBouquetPaper(DEFAULT_BOUQUET_PAPER).name}.</p>
 									</div>
 									<span class="paper-current">{selectedPaper.name}</span>
 								</div>
@@ -556,7 +583,7 @@
 								<div class="paper-head">
 									<div>
 										<h3>Background <span class="optional">(optional)</span></h3>
-										<p>Set the mood behind your bouquet. Skip it and we’ll use {getBouquetBackground(DEFAULT_BOUQUET_BACKGROUND).name} by default.</p>
+										<p>Tap a mood. We’ll start with {getBouquetBackground(DEFAULT_BOUQUET_BACKGROUND).name}.</p>
 									</div>
 									<span class="paper-current">{selectedBackground.name}</span>
 								</div>
@@ -595,9 +622,9 @@
 							{:else}
 								<p class="limit-note" class:full={atLimit} aria-live="polite">
 									{#if atLimit}
-										Bouquet is full. Remove a stem if you wanna swap.
+										Bouquet is full — tap − on a tile to swap a stem.
 									{:else}
-										{MAX_BOUQUET_FLOWERS - selected.length} stem slots left.
+										{MAX_BOUQUET_FLOWERS - selected.length} stem slots left. Tap − on a tile to remove one.
 									{/if}
 								</p>
 							{/if}
@@ -605,7 +632,7 @@
 							<div class="panel-head">
 								<div>
 									<h2>Write your note</h2>
-									<p>This name and message will show up on your bouquet page.</p>
+									<p>Short and sweet works best. You can still edit before sending.</p>
 								</div>
 							</div>
 
@@ -674,7 +701,7 @@
 										class="field-input textarea"
 										bind:value={message}
 										maxlength={fieldLimits.message.max}
-										rows="5"
+										rows="3"
 										placeholder="Drop something sweet you want to leave with the petals..."
 										aria-invalid={errors.message ? 'true' : undefined}
 										aria-describedby={errors.message ? 'message-error' : 'message-hint'}
@@ -686,7 +713,7 @@
 											<span class="err-dot" aria-hidden="true">!</span>{errors.message}
 										</p>
 									{:else}
-										<p class="field-hint hint-line" id="message-hint">3–280 characters.</p>
+										<p class="field-hint hint-line" id="message-hint">{fieldLimits.message.min}–{fieldLimits.message.max} characters.</p>
 									{/if}
 
 									<div class="samples">
@@ -786,7 +813,7 @@
 
 					{#if step < 3}
 						<button type="button" class="btn btn-primary" onclick={next} use:mPress>
-							{step === 1 ? 'Next: write your note' : 'Next: review'}
+							{step === 1 ? 'Next: note' : 'Next: review'}
 							<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 								<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
 							</svg>
@@ -794,7 +821,7 @@
 					{:else}
 						<button type="button" class="btn btn-primary" disabled={submitting} onclick={submit} use:mPress>
 							{#if submitting}
-								<span class="spinner" aria-hidden="true"></span> Building...
+								<span class="spinner" aria-hidden="true"></span> Making...
 							{:else}
 								Make my bouquet
 								<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -815,11 +842,11 @@
 
 					<div class="preview-art">
 						<BouquetBackground background={background} />
-						<Bouquet flowers={selected} {paper} fallback={false} greenery={selected.length > 0} />
+						<Bouquet flowers={selected} {paper} {layers} fallback={false} greenery={selected.length > 0} />
 					</div>
 
 
-					{#key selected.join(',') + '|' + paper + '|' + background + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
+					{#key selected.join(',') + '|' + layers.join(',') + '|' + paper + '|' + background + '|' + recipient + '|' + sender + '|' + (message ? 'm' : '')}
 						<div class="preview-content" use:mEnter={{ y: 8, scale: 0.995, blur: 2, duration: 0.4 }}>
 							{#if selected.length === 0}
 								<p class="preview-empty">Pick some flowers and your bouquet will bloom right here.</p>
@@ -839,8 +866,9 @@
 			</aside>
 		</div>
 
-		<FloatingBouquet
+					<FloatingBouquet
 			flowers={selected}
+			{layers}
 			{paper}
 			{background}
 			to={previewFor}
@@ -855,14 +883,14 @@
 		position: relative;
 		max-width: 1180px;
 		margin: 0 auto;
-		padding: clamp(1.6rem, 3.4vw, 2.6rem) 1.25rem 1rem;
+		padding: clamp(1rem, 2.2vw, 1.7rem) 1rem 5.5rem;
 		overflow: clip;
 	}
 
 	.studio-glow {
 		position: absolute;
 		inset: -6rem -10% auto;
-		height: 32rem;
+		height: 24rem;
 		background: radial-gradient(ellipse 54% 46% at 68% 18%, rgb(236 207 202 / 0.6), transparent 62%);
 		pointer-events: none;
 		z-index: -1;
@@ -870,21 +898,21 @@
 
 	.studio-head {
 		max-width: 640px;
-		margin-bottom: clamp(1.4rem, 3vw, 2rem);
+		margin-bottom: 0.9rem;
 	}
 
 	.studio-head h1 {
-		margin-top: 0.6rem;
-		font-size: clamp(2.3rem, 5.6vw, 3.6rem);
-		letter-spacing: -0.04em;
-		line-height: 0.94;
+		margin-top: 0.3rem;
+		font-size: clamp(1.95rem, 4.6vw, 2.8rem);
+		letter-spacing: -0.045em;
+		line-height: 0.96;
 	}
 
 	.sub {
-		margin-top: 0.85rem;
+		margin-top: 0.45rem;
 		max-width: 52ch;
-		font-size: 0.92rem;
-		line-height: 1.75;
+		font-size: 0.84rem;
+		line-height: 1.6;
 		color: var(--color-ink-soft);
 	}
 
@@ -894,9 +922,9 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 0;
-		margin-bottom: 1.4rem;
+		margin-bottom: 0.85rem;
 		border: 1px solid var(--color-rule);
-		border-radius: 12px;
+		border-radius: 10px;
 		background: var(--color-paper);
 		padding: 0;
 		overflow: hidden;
@@ -931,10 +959,10 @@
 		border: 0;
 		border-right: 1px solid var(--color-rule-soft);
 		border-radius: 0;
-		padding: 0.78rem 0.9rem 0.9rem;
+		padding: 0.52rem 0.7rem 0.58rem;
 		background: transparent;
 		font-family: var(--font-mono);
-		font-size: 0.62rem;
+		font-size: 0.58rem;
 		font-weight: 500;
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
@@ -967,11 +995,11 @@
 	.stepper-num {
 		display: grid;
 		place-items: center;
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
 		border-radius: 50%;
 		border: 1px solid currentColor;
-		font-size: 0.56rem;
+		font-size: 0.52rem;
 		flex-shrink: 0;
 		transition: transform 240ms var(--ease-spring), background-color 240ms ease;
 	}
@@ -1010,7 +1038,7 @@
 	.studio-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
-		gap: 1.4rem;
+		gap: 1rem;
 		align-items: start;
 	}
 
@@ -1021,10 +1049,10 @@
 	.panel {
 		min-width: 0;
 		border: 1px solid var(--color-rule);
-		border-radius: 14px;
+		border-radius: 12px;
 		background: var(--color-paper);
 		box-shadow: 0 14px 34px -26px rgb(25 17 16 / 0.45);
-		padding: clamp(1rem, 2.4vw, 1.6rem);
+		padding: clamp(0.75rem, 1.8vw, 1.1rem);
 	}
 
 	.step-view {
@@ -1036,20 +1064,20 @@
 		align-items: flex-start;
 		justify-content: space-between;
 		gap: 1rem;
-		margin-bottom: 1.1rem;
-		padding-bottom: 1rem;
+		margin-bottom: 0.7rem;
+		padding-bottom: 0.6rem;
 		border-bottom: 1px solid var(--color-rule-soft);
 	}
 
 	.panel-head h2 {
-		font-size: clamp(1.35rem, 3vw, 1.7rem);
-		letter-spacing: -0.035em;
+		font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+		letter-spacing: -0.03em;
 	}
 
 	.panel-head p {
-		margin-top: 0.35rem;
-		font-size: 0.84rem;
-		line-height: 1.65;
+		margin-top: 0.2rem;
+		font-size: 0.76rem;
+		line-height: 1.5;
 		color: var(--color-ink-soft);
 		max-width: 42ch;
 	}
@@ -1058,9 +1086,9 @@
 		display: grid;
 		justify-items: center;
 		line-height: 1;
-		padding: 0.45rem 0.65rem;
+		padding: 0.32rem 0.5rem;
 		border: 1px solid var(--color-rule);
-		border-radius: 10px;
+		border-radius: 9px;
 		background: var(--color-paper-warm);
 		flex-shrink: 0;
 		transition: background-color 220ms ease, border-color 220ms ease, transform 300ms var(--ease-spring);
@@ -1074,7 +1102,7 @@
 
 	.tally-num {
 		font-family: var(--font-display);
-		font-size: 1.2rem;
+		font-size: 1.02rem;
 		font-weight: 600;
 		color: var(--color-rose-deep);
 	}
@@ -1098,9 +1126,9 @@
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-bottom: 1rem;
-		padding-bottom: 0.85rem;
+		gap: 0.3rem;
+		margin-bottom: 0.6rem;
+		padding-bottom: 0.55rem;
 		border-bottom: 1px solid var(--color-rule-soft);
 	}
 
@@ -1118,9 +1146,9 @@
 		border: 1px solid var(--color-rule);
 		border-radius: 999px;
 		background: transparent;
-		padding: 0.34rem 0.7rem;
+		padding: 0.26rem 0.62rem;
 		font-family: var(--font-mono);
-		font-size: 0.58rem;
+		font-size: 0.54rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		font-weight: 500;
@@ -1140,14 +1168,34 @@
 		color: var(--color-paper);
 	}
 
+	.chip.surprise {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		margin-left: auto;
+		background: var(--color-blush-soft);
+		border-color: var(--color-blush);
+		color: var(--color-rose-deep);
+	}
+
+	.chip.surprise:hover {
+		background: var(--color-blush);
+		border-color: var(--color-rose-light);
+		color: var(--color-ink);
+	}
+
 	/* picks */
 	.pick-grid {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
-		gap: 0.6rem;
+		grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+		gap: 0.45rem;
+	}
+
+	.pick-grid > li {
+		position: relative;
 	}
 
 	.pick {
@@ -1157,7 +1205,7 @@
 		width: 100%;
 		height: 100%;
 		border: 1px solid var(--color-rule);
-		border-radius: 12px;
+		border-radius: 10px;
 		background: var(--color-paper);
 		padding: 0;
 		text-align: left;
@@ -1173,8 +1221,9 @@
 	}
 
 	.pick.selected {
-		border-color: var(--color-ink);
-		box-shadow: 0 0 0 2px rgb(25 17 16 / 0.08), 0 12px 24px -18px rgb(173 54 72 / 0.35);
+		border-color: var(--color-rose-deep);
+		background: linear-gradient(180deg, #fffaf2, var(--color-blush-soft));
+		box-shadow: 0 0 0 2px rgb(173 54 72 / 0.1), 0 12px 24px -18px rgb(173 54 72 / 0.35);
 	}
 
 	.pick.locked {
@@ -1185,11 +1234,11 @@
 	.pick-art {
 		display: grid;
 		place-items: end center;
-		height: 122px;
+		height: 84px;
 		background: radial-gradient(circle at 50% 88%, rgb(236 207 202 / 0.55), transparent 68%), var(--color-paper-warm);
 		border-bottom: 1px solid var(--color-rule-soft);
 		overflow: hidden;
-		padding-top: 0.35rem;
+		padding-top: 0.15rem;
 		transition: background 220ms ease;
 	}
 
@@ -1198,7 +1247,7 @@
 	}
 
 	.pick-art img {
-		height: 116px;
+		height: 78px;
 		width: auto;
 		display: block;
 		transition: transform 300ms var(--ease-spring);
@@ -1209,52 +1258,52 @@
 	}
 
 	.pick-meta {
-		padding: 0.55rem 0.65rem 0.65rem;
+		padding: 0.36rem 0.42rem 0.45rem;
 	}
 
 	.pick-name {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.3rem;
+		gap: 0.2rem;
 		font-family: var(--font-display);
-		font-size: 1.02rem;
+		font-size: 0.86rem;
 		font-weight: 500;
 		letter-spacing: -0.025em;
 	}
 
 	.pick-tone {
 		font-family: var(--font-mono);
-		font-size: 0.46rem;
-		letter-spacing: 0.1em;
+		font-size: 0.4rem;
+		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		color: var(--color-rose-deep);
 		border: 1px solid var(--color-rule-soft);
 		border-radius: 999px;
-		padding: 0.1rem 0.3rem;
+		padding: 0.06rem 0.22rem;
 		white-space: nowrap;
 	}
 
 	.pick-desc {
-		margin-top: 0.22rem;
-		font-size: 0.66rem;
-		line-height: 1.45;
+		margin-top: 0.1rem;
+		font-size: 0.56rem;
+		line-height: 1.35;
 		color: var(--color-ink-faint);
 		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
+		-webkit-line-clamp: 1;
+		line-clamp: 1;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
 
 	.pick-check {
 		position: absolute;
-		top: 0.45rem;
-		right: 0.45rem;
+		top: 0.3rem;
+		right: 0.3rem;
 		display: grid;
 		place-items: center;
-		width: 18px;
-		height: 18px;
+		width: 15px;
+		height: 15px;
 		border-radius: 50%;
 		background: var(--color-ink);
 		color: var(--color-paper);
@@ -1269,8 +1318,8 @@
 	}
 
 	.limit-note {
-		margin-top: 0.85rem;
-		font-size: 0.74rem;
+		margin-top: 0.55rem;
+		font-size: 0.68rem;
 		color: var(--color-ink-faint);
 		transition: color 200ms ease;
 	}
@@ -1280,123 +1329,53 @@
 		font-weight: 500;
 	}
 
+	.pick-remove {
+		position: absolute;
+		top: 0.3rem;
+		left: 1.7rem;
+		z-index: 3;
+		display: grid;
+		place-items: center;
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		border: 1px solid var(--color-rose-light);
+		background: var(--color-paper);
+		color: var(--color-rose-deep);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		font-weight: 700;
+		line-height: 1;
+		cursor: pointer;
+		box-shadow: 0 2px 6px -3px rgb(25 17 16 / 0.5);
+		transition: background-color 160ms ease, color 160ms ease, transform 160ms var(--ease-spring);
+	}
+
+	.pick-remove:hover,
+	.pick-remove:active {
+		background: var(--color-rose);
+		border-color: var(--color-rose);
+		color: #fff7ef;
+		transform: scale(1.08);
+	}
+
 	.pick-count {
 		position: absolute;
-		top: 0.45rem;
-		left: 0.45rem;
-		min-width: 18px;
-		height: 18px;
-		padding: 0 0.3rem;
+		top: 0.3rem;
+		left: 0.3rem;
+		min-width: 16px;
+		height: 16px;
+		padding: 0 0.25rem;
 		display: grid;
 		place-items: center;
 		border-radius: 999px;
 		background: var(--color-rose);
 		color: #fff7ef;
 		font-family: var(--font-mono);
-		font-size: 0.56rem;
+		font-size: 0.52rem;
 		font-weight: 700;
 		box-shadow: 0 2px 6px -2px rgb(25 17 16 / 0.5);
 	}
-
-	/* selected stems */
-	.stems {
-		margin-top: 1rem;
-		padding-top: 0.9rem;
-		border-top: 1px solid var(--color-rule-soft);
-	}
-
-	.stems-head {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 0.8rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.stems-head h3 {
-		font-size: 0.95rem;
-		letter-spacing: -0.02em;
-	}
-
-	.stems-summary {
-		margin-top: 0.15rem;
-		font-size: 0.7rem;
-		line-height: 1.5;
-		color: var(--color-ink-faint);
-	}
-
-	.stems-count {
-		font-family: var(--font-mono);
-		font-size: 0.56rem;
-		letter-spacing: 0.1em;
-		color: var(--color-rose-deep);
-		border: 1px solid var(--color-rule-soft);
-		background: var(--color-blush-soft);
-		border-radius: 999px;
-		padding: 0.2rem 0.45rem;
-		white-space: nowrap;
-	}
-
-	.stem-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.3rem;
-	}
-
-	.stem {
-		display: inline-flex;
-		align-items: center;
-		border: 1px solid var(--color-rule);
-		border-radius: 999px;
-		background: var(--color-paper-warm);
-		padding: 0.1rem 0.1rem 0.1rem 0.15rem;
-		transition: border-color 160ms ease, background-color 160ms ease;
-	}
-
-
-	.stem-pick {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		border: 0;
-		background: none;
-		padding: 0.1rem 0.15rem;
-		font-size: 0.68rem;
-		color: var(--color-ink-soft);
-	}
-
-	.stem-pick img {
-		height: 22px;
-		width: auto;
-	}
-
-	.stem-remove {
-		display: grid;
-		place-items: center;
-		width: 20px;
-		height: 20px;
-		border: 0;
-		border-radius: 50%;
-		background: transparent;
-		color: var(--color-ink-faint);
-		font-size: 0.9rem;
-		line-height: 1;
-		cursor: pointer;
-	}
-
-	.stem-remove:hover {
-		background: var(--color-blush);
-		color: var(--color-rose-deep);
-	}
-
-
-
-
-
-
 
 	.notice-line {
 		margin-top: 0.85rem;
@@ -1419,7 +1398,7 @@
 	/* fields */
 	.fields {
 		display: grid;
-		gap: 1.1rem;
+		gap: 0.8rem;
 	}
 
 	.field-top {
@@ -1462,15 +1441,15 @@
 
 	.textarea {
 		resize: vertical;
-		min-height: 122px;
-		line-height: 1.65;
+		min-height: 86px;
+		line-height: 1.6;
 	}
 
 	.samples {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-top: 0.65rem;
+		gap: 0.3rem;
+		margin-top: 0.45rem;
 		align-items: center;
 	}
 
@@ -1487,8 +1466,8 @@
 		border: 1px dashed rgb(25 17 16 / 0.18);
 		border-radius: 999px;
 		background: transparent;
-		padding: 0.28rem 0.6rem;
-		font-size: 0.7rem;
+		padding: 0.22rem 0.5rem;
+		font-size: 0.64rem;
 		color: var(--color-ink-soft);
 		cursor: pointer;
 		text-align: left;
@@ -1508,16 +1487,16 @@
 		border: 1px solid var(--color-rule-soft);
 		border-radius: 12px;
 		overflow: hidden;
-		margin-bottom: 1rem;
+		margin-bottom: 0.7rem;
 		background: var(--color-paper-warm);
 	}
 
 	.review-row {
 		display: grid;
-		grid-template-columns: 64px 1fr auto;
-		gap: 0.7rem;
+		grid-template-columns: 56px 1fr auto;
+		gap: 0.6rem;
 		align-items: start;
-		padding: 0.75rem 0.85rem;
+		padding: 0.5rem 0.6rem;
 		background: var(--color-paper);
 		border-bottom: 1px solid var(--color-rule-soft);
 	}
@@ -1541,7 +1520,7 @@
 	}
 
 	.review-value {
-		font-size: 0.86rem;
+		font-size: 0.8rem;
 		font-weight: 500;
 		line-height: 1.6;
 		overflow-wrap: anywhere;
@@ -1560,8 +1539,8 @@
 	}
 
 	.paper-picker {
-		margin-top: 1.1rem;
-		padding-top: 1rem;
+		margin-top: 0.75rem;
+		padding-top: 0.7rem;
 		border-top: 1px solid var(--color-rule-soft);
 	}
 
@@ -1569,19 +1548,19 @@
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: 0.8rem;
-		margin-bottom: 0.7rem;
+		gap: 0.6rem;
+		margin-bottom: 0.45rem;
 	}
 
 	.paper-head h3 {
-		font-size: 1rem;
+		font-size: 0.9rem;
 		letter-spacing: -0.02em;
 	}
 
 	.paper-head p {
-		margin-top: 0.2rem;
-		font-size: 0.76rem;
-		line-height: 1.55;
+		margin-top: 0.12rem;
+		font-size: 0.7rem;
+		line-height: 1.45;
 		color: var(--color-ink-soft);
 	}
 
@@ -1609,21 +1588,21 @@
 
 	.paper-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 0.55rem;
+		grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+		gap: 0.4rem;
 	}
 
 	.paper-card {
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 0.55rem;
+		gap: 0.4rem;
 		width: 100%;
 		text-align: left;
 		border: 1px solid var(--color-rule);
-		border-radius: 12px;
+		border-radius: 10px;
 		background: var(--color-paper);
-		padding: 0.45rem 0.55rem;
+		padding: 0.32rem 0.38rem;
 		cursor: pointer;
 		transition: border-color 220ms ease, box-shadow 240ms ease, transform 220ms var(--ease-out);
 	}
@@ -1640,9 +1619,9 @@
 	}
 
 	.paper-swatch {
-		width: 46px;
-		height: 46px;
-		border-radius: 10px;
+		width: 38px;
+		height: 38px;
+		border-radius: 8px;
 		overflow: hidden;
 		background: radial-gradient(circle at 50% 80%, rgb(236 207 202 / 0.45), transparent 70%), var(--color-cream);
 		border: 1px solid var(--color-rule-soft);
@@ -1666,12 +1645,13 @@
 
 	.paper-name {
 		font-family: var(--font-display);
-		font-size: 0.98rem;
+		font-size: 0.82rem;
 		font-weight: 500;
 		letter-spacing: -0.02em;
 	}
 
 	.paper-desc {
+		display: none;
 		font-size: 0.64rem;
 		line-height: 1.4;
 		color: var(--color-ink-faint);
@@ -1683,8 +1663,8 @@
 		right: 0.35rem;
 		display: grid;
 		place-items: center;
-		width: 16px;
-		height: 16px;
+		width: 14px;
+		height: 14px;
 		border-radius: 50%;
 		background: var(--color-ink);
 		color: var(--color-paper);
@@ -1709,28 +1689,28 @@
 	}
 
 	.bg-picker {
-		margin-top: 1.1rem;
-		padding-top: 1rem;
+		margin-top: 0.75rem;
+		padding-top: 0.7rem;
 		border-top: 1px solid var(--color-rule-soft);
 	}
 
 	.bg-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 0.55rem;
+		grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+		gap: 0.4rem;
 	}
 
 	.bg-card {
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 0.55rem;
+		gap: 0.4rem;
 		width: 100%;
 		text-align: left;
 		border: 1px solid var(--color-rule);
-		border-radius: 12px;
+		border-radius: 10px;
 		background: var(--color-paper);
-		padding: 0.45rem 0.55rem;
+		padding: 0.32rem 0.38rem;
 		cursor: pointer;
 		transition: border-color 220ms ease, box-shadow 240ms ease, transform 220ms var(--ease-out);
 	}
@@ -1748,9 +1728,9 @@
 
 	.bg-thumb {
 		position: relative;
-		width: 46px;
-		height: 46px;
-		border-radius: 10px;
+		width: 38px;
+		height: 38px;
+		border-radius: 8px;
 		overflow: hidden;
 		border: 1px solid var(--color-rule-soft);
 		flex-shrink: 0;
@@ -1816,7 +1796,7 @@
 		border: 1px dashed var(--color-rule);
 		border-radius: 12px;
 		background: transparent;
-		padding: 0.8rem 0.9rem;
+		padding: 0.6rem 0.7rem;
 		color: var(--color-ink-soft);
 	}
 
@@ -1858,9 +1838,9 @@
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
-		gap: 0.8rem;
-		margin-top: 1.3rem;
-		padding-top: 1.1rem;
+		gap: 0.6rem;
+		margin-top: 0.8rem;
+		padding-top: 0.7rem;
 		border-top: 1px solid var(--color-rule-soft);
 	}
 
@@ -1910,7 +1890,7 @@
 		border-radius: 14px;
 		background: linear-gradient(180deg, var(--color-paper), #f7ecdd);
 		box-shadow: 0 16px 36px -28px rgb(25 17 16 / 0.45);
-		padding: 0.8rem 0.8rem 0.95rem;
+		padding: 0.65rem 0.65rem 0.8rem;
 	}
 
 	.preview-top {
@@ -2153,7 +2133,6 @@
 			display: block;
 		}
 
-		.pick-grid,
 		.paper-grid,
 		.bg-grid {
 			display: grid;
@@ -2171,39 +2150,75 @@
 			margin-inline: -0.25rem;
 		}
 
-		.pick-grid::-webkit-scrollbar,
 		.paper-grid::-webkit-scrollbar,
 		.bg-grid::-webkit-scrollbar {
 			display: none;
 		}
 
-		.pick-grid > li,
 		.paper-grid > .paper-card,
 		.bg-grid > .bg-card {
 			scroll-snap-align: start;
+		}
+
+		/* Every flower stays visible: three compact columns, no swiping. */
+		.pick-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-auto-flow: row;
+			grid-auto-columns: auto;
+			gap: 0.4rem;
+			overflow: visible;
+			padding: 0;
+			margin: 0;
+		}
+
+		.panel-nav {
+			position: sticky;
+			bottom: 0;
+			z-index: 20;
+			margin: 0.8rem -0.35rem -0.75rem;
+			padding: 0.65rem 0.35rem calc(0.65rem + env(safe-area-inset-bottom));
+			background: rgb(251 246 236 / 0.94);
+			-webkit-backdrop-filter: blur(14px);
+			backdrop-filter: blur(14px);
+		}
+
+		.panel-nav .btn {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.sub {
+			display: none;
 		}
 	}
 
 	@media (max-width: 470px) {
 		.pick-grid {
-			grid-auto-columns: minmax(132px, 46%);
-			gap: 0.4rem;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.32rem;
 		}
 		.paper-grid,
 		.bg-grid {
-			grid-auto-columns: minmax(220px, 84%);
+			grid-auto-columns: 138px;
 		}
 		.pick-art {
-			height: 104px;
+			height: 66px;
 		}
 		.pick-art img {
-			height: 98px;
+			height: 62px;
 		}
 		.pick-name {
-			font-size: 0.94rem;
+			font-size: 0.76rem;
 		}
+		.pick-meta {
+			padding: 0.3rem 0.34rem 0.38rem;
+		}
+		.pick-tone,
 		.pick-desc {
-			font-size: 0.6rem;
+			display: none;
 		}
 	}
 </style>

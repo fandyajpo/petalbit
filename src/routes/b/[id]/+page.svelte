@@ -4,10 +4,13 @@
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
+	import SoundToggle from '$lib/components/SoundToggle.svelte';
+	import SocialShare from '$lib/components/SocialShare.svelte';
 	import { getFlower } from '$lib/data/flowers';
 	import { mEnter, mPress } from '$lib/actions/studio-motion';
 	import { splitText } from '$lib/actions/motion';
 	import { reveal } from '$lib/actions/reveal';
+	import { playSound } from '$lib/sound';
 
 	let { data }: { data: PageData } = $props();
 
@@ -28,6 +31,13 @@
 
 	let remaining = $state('');
 	let opened = $state(false);
+
+	function openBouquet() {
+		if (opened) return;
+		opened = true;
+		playSound('open');
+		window.dispatchEvent(new CustomEvent('petalbit:celebrate'));
+	}
 
 	onMount(() => {
 		const end = new Date(data.expiresAt).getTime();
@@ -62,10 +72,15 @@
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content={data.url} />
 	<meta property="og:image" content={data.ogImage} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content={data.ogImage} />
 </svelte:head>
 
 <section class="share">
+	<div class="share-sound"><SoundToggle /></div>
+
 	<div class="page-bg" aria-hidden="true">
 		<BouquetBackground background={bouquet.background} />
 		<span class="page-bg-scrim"></span>
@@ -83,7 +98,7 @@
 				<button
 					type="button"
 					class="open-art"
-					onclick={() => (opened = true)}
+					onclick={openBouquet}
 					aria-label="Open your bouquet"
 					use:mPress={{ hoverScale: 1.015, pressScale: 0.985, lift: -2 }}
 				>
@@ -101,7 +116,7 @@
 				<h2 class="open-title">For {bouquet.recipient}.</h2>
 				<p class="open-sub">Tap the envelope to open the bouquet and read the note.</p>
 
-				<button type="button" class="btn btn-primary open-btn" onclick={() => (opened = true)} use:mPress>
+				<button type="button" class="btn btn-primary open-btn" onclick={openBouquet} use:mPress>
 					Open bouquet
 					<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 						<path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" />
@@ -116,7 +131,7 @@
 				<span class="art-seal" aria-hidden="true">
 					<img src="/art/logo-mark.png" alt="" width="96" height="96" class="pixelated" />
 				</span>
-				<Bouquet flowers={bouquet.flowers} paper={bouquet.paper} />
+				<Bouquet flowers={bouquet.flowers} paper={bouquet.paper} layers={bouquet.layers} />
 			</div>
 			<p class="art-note">Built pixel by pixel, just for you.</p>
 		</div>
@@ -150,6 +165,10 @@
 
 			<div class="letter-share">
 				<CopyLink value={data.url} label="Share this bouquet" />
+				<SocialShare
+					url={data.url}
+					text={`${bouquet.sender} sent a pixel bouquet to ${bouquet.recipient}.`}
+				/>
 			</div>
 
 			<div class="letter-expiry">
@@ -192,6 +211,13 @@
 	.open-title,
 	.letter-quote p {
 		overflow-wrap: anywhere;
+	}
+
+	.share-sound {
+		position: absolute;
+		top: 0.9rem;
+		right: 1.25rem;
+		z-index: 6;
 	}
 
 	.page-bg {

@@ -46,6 +46,8 @@
 	html {
 		scroll-behavior: smooth;
 		-webkit-text-size-adjust: 100%;
+		/* Kill the double-tap-to-zoom gesture; pinch zoom and scrolling still work. */
+		touch-action: manipulation;
 		scroll-padding-top: 5.5rem;
 		/* Clip only intentional decorative bleed at the viewport edge; body is
 		   left scrollable so sticky/fixed elements keep working. */

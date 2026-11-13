@@ -10,9 +10,10 @@
 		to: string;
 		from: string;
 		message: string;
+		layers?: string[];
 	};
 
-	let { flowers, paper, background, to, from, message }: Props = $props();
+	let { flowers, paper, background, to, from, message, layers }: Props = $props();
 
 	const MARGIN = 12;
 	const DEFAULT_TOP = 72;
@@ -273,7 +274,7 @@
 	<div class="art">
 		{#if flowers.length > 0}
 			<BouquetBackground {background} />
-			<Bouquet {flowers} {paper} greenery />
+			<Bouquet {flowers} {paper} {layers} greenery />
 		{:else}
 			<p class="empty">Pick a bloom and it will bloom here.</p>
 		{/if}

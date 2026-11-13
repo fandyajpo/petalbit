@@ -2,10 +2,12 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import Brand from './Brand.svelte';
+	import SoundToggle from './SoundToggle.svelte';
 	import { magnet } from '$lib/actions/motion';
 
 	const links = [
 		{ href: '/#cara-kerja', label: 'How it works' },
+		{ href: '/tutorial', label: 'Tutorial' },
 		{ href: '/#bunga', label: 'The lineup' },
 		{ href: '/#dukung', label: 'Support' }
 	];
@@ -82,6 +84,7 @@
 		</nav>
 
 		<div class="actions">
+			<SoundToggle />
 			<a
 				class="btn btn-primary btn-sm cta"
 				href={onCreatePage ? '/' : '/create'}

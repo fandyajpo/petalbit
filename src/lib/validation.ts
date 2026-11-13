@@ -21,7 +21,7 @@ export const bouquetInputSchema = z.object({
 		.string({ required_error: 'A message is required.' })
 		.trim()
 		.min(fieldLimits.message.min, 'Write at least 3 characters.')
-		.max(fieldLimits.message.max, 'Message can be max 280 characters.'),
+		.max(fieldLimits.message.max, `Message can be max ${fieldLimits.message.max} characters.`),
 	flowers: z
 		.array(z.enum(FLOWER_IDS as [string, ...string[]]), {
 			required_error: 'Pick at least one flower.'
@@ -34,6 +34,10 @@ export const bouquetInputSchema = z.object({
 			),
 			`Max ${MAX_PER_FLOWER} of the same flower per bouquet.`
 		),
+	layers: z
+		.array(z.enum(['auto', 'front', 'back']))
+		.max(MAX_BOUQUET_FLOWERS, `Max ${MAX_BOUQUET_FLOWERS} layers.`)
+		.optional(),
 	paper: z
 		.preprocess(
 			(value) => (value === '' || value === null || value === undefined ? undefined : value),
@@ -69,6 +73,7 @@ export function validateBouquet(input: {
 	flowers: string[];
 	paper?: string;
 	background?: string;
+	layers?: string[];
 }) {
 	const parsed = bouquetInputSchema.safeParse(input);
 	return {

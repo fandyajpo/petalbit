@@ -14,6 +14,8 @@
 		hint?: boolean;
 		/** Bouquet wrap style id; defaults to the first paper when missing. */
 		paper?: string;
+		/** Optional per-stem depth overrides, parallel to `flowers`. */
+		layers?: string[];
 	};
 
 	let {
@@ -24,7 +26,8 @@
 		animate = true,
 		fallback = true,
 		hint = false,
-		paper
+		paper,
+		layers = []
 	}: Props = $props();
 
 	type Spark = {
@@ -149,18 +152,47 @@
 			 * bunch reads as two loose layers instead of one occluding stack.
 			 */
 			const back = arcIndex % 2 === 0;
+			const layer = layers[i];
 
 			return {
 				key: `${id}-${i}`,
 				name: flower?.name ?? id,
 				image: flower?.image ?? '',
 				angle: warp * spread * (back ? 1.09 : 1),
-				scale: fit * ((back ? 0.93 : 1) - depth * 0.05),
+				scale:
+					layer === 'back'
+						? fit * 0.93
+						: layer === 'front'
+							? fit
+							: fit * ((back ? 0.93 : 1) - depth * 0.05),
 				shift: warp * 7.4 + (back && Math.abs(pos) > 0.02 ? Math.sign(pos) * 2.2 : 0),
-				lift: back ? (n >= 6 ? 4.4 : 3) : 0,
-				z: back ? 12 + Math.round((1 - Math.abs(pos)) * 6) : 30 - Math.round(i),
+				lift:
+					layer === 'front'
+						? 0
+						: layer === 'back'
+							? 3
+							: back
+								? n >= 6
+									? 4.4
+									: 3
+								: 0,
+				z:
+					layer === 'front'
+						? 44 + i
+						: layer === 'back'
+							? 6 + i
+							: back
+								? 12 + Math.round((1 - Math.abs(pos)) * 6)
+								: 30 - Math.round(i),
 				delay: Math.min(i, 6) * 55,
-				row: back ? ('back' as const) : ('front' as const)
+				row:
+					layer === 'front'
+						? ('front' as const)
+						: layer === 'back'
+							? ('back' as const)
+							: back
+								? ('back' as const)
+								: ('front' as const)
 			};
 		});
 	});
@@ -220,7 +252,8 @@
 			wrapLayout.paperX,
 			wrapLayout.ribbonY,
 			wrapLayout.paperRotate,
-			wrapFilter
+			// Keep the ribbon its own colour; only the paper takes the tint.
+			wrapLayout.shadow
 		)
 	);
 

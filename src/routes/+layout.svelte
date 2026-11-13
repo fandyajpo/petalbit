@@ -7,6 +7,7 @@
 	import RoundLines from '$lib/components/RoundLines.svelte';
 	import PixelButterfly from '$lib/components/PixelButterfly.svelte';
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
+	import PetalFX from '$lib/components/PetalFX.svelte';
 
 	let { children } = $props();
 
@@ -74,6 +75,7 @@
 </script>
 
 <IntroLoader />
+<PetalFX />
 
 {#if !isBouquetPage}
 	<RoundLines />
