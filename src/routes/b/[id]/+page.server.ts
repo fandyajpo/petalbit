@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { getBouquet } from '$lib/server/bouquet-store';
 import { bouquetIdSchema } from '$lib/validation';
 import { BOUQUET_TTL_SECONDS } from '$lib/types';
+import { RATE_LIMITS, rateLimit, requestIp } from '$lib/server/rate-limit';
 
 const timeFormat = new Intl.DateTimeFormat('en-US', {
 	weekday: 'long',
@@ -14,7 +15,17 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
 	timeZone: 'UTC'
 });
 
-export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
+export const load: PageServerLoad = async ({ params, url, setHeaders, request }) => {
+	const limited = rateLimit(
+		`read:${requestIp(request)}`,
+		RATE_LIMITS.read.limit,
+		RATE_LIMITS.read.windowMs
+	);
+	if (!limited.allowed) {
+		setHeaders({ 'retry-after': String(limited.retryAfter) });
+		throw error(429, 'Too many bouquet opens from here. Give it a minute and try again.');
+	}
+
 	const parsed = bouquetIdSchema.safeParse(params.id);
 	if (!parsed.success) {
 		throw error(404, 'This bouquet was not found.');
@@ -40,7 +51,7 @@ export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
 		// A bouquet is immutable once saved, so the rendered page can sit in the
 		// CDN for a few minutes. The stale window never outlives the bouquet.
 		setHeaders({
-			'cache-control': `public, max-age=0, s-maxage=${Math.min(secondsLeft, 300)}, stale-while-revalidate=${Math.min(secondsLeft, 3600)}`
+			'cache-control': `public, max-age=0, s-maxage=${Math.min(secondsLeft, 3600)}, stale-while-revalidate=${Math.min(secondsLeft, 86_400)}`
 		});
 	}
 

@@ -5,10 +5,23 @@ import { bouquetInputSchema, fieldErrors } from '$lib/validation';
 import { createBouquetId, saveBouquet } from '$lib/server/bouquet-store';
 import { notifyNewBouquet } from '$lib/server/discord';
 import type { Bouquet } from '$lib/types';
+import { RATE_LIMITS, rateLimit, requestIp } from '$lib/server/rate-limit';
 
 const MAX_BODY_BYTES = 8 * 1024;
 
 export const POST: RequestHandler = async ({ request, url }) => {
+	const limited = rateLimit(
+		`create:${requestIp(request)}`,
+		RATE_LIMITS.create.limit,
+		RATE_LIMITS.create.windowMs
+	);
+	if (!limited.allowed) {
+		return json(
+			{ message: 'Too many bouquets from here. Take a breather and try again later.' },
+			{ status: 429, headers: { 'retry-after': String(limited.retryAfter) } }
+		);
+	}
+
 	const contentType = request.headers.get('content-type') ?? '';
 	if (!contentType.includes('application/json')) {
 		return json({ message: 'Unsupported request format.' }, { status: 415 });

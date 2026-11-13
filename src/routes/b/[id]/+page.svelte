@@ -64,11 +64,14 @@
 	<title>{bouquet.recipient} got a bouquet from {bouquet.sender} · Petalbit</title>
 	<meta
 		name="description"
-		content={`“${bouquet.message.slice(0, 120)}” A pixel bouquet from ${bouquet.sender} for ${bouquet.recipient}.`}
+		content={`${bouquet.sender} sent ${bouquet.recipient} a pixel bouquet. Open the link to read the note.`}
 	/>
 	<meta name="robots" content="noindex" />
 	<meta property="og:title" content={`${bouquet.sender} sent a bouquet for ${bouquet.recipient}`} />
-	<meta property="og:description" content={bouquet.message} />
+	<meta
+		property="og:description"
+		content={`A pixel bouquet from ${bouquet.sender} for ${bouquet.recipient}. Open it to read the note.`}
+	/>
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content={data.url} />
 	<meta property="og:image" content={data.ogImage} />

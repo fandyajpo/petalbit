@@ -3,8 +3,21 @@ import type { RequestHandler } from './$types';
 import { getBouquet } from '$lib/server/bouquet-store';
 import { bouquetIdSchema } from '$lib/validation';
 import { renderBouquetOg } from '$lib/server/og-image';
+import { RATE_LIMITS, rateLimit, requestIp } from '$lib/server/rate-limit';
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, url, request }) => {
+	const limited = rateLimit(
+		`share-image:${requestIp(request)}`,
+		RATE_LIMITS.shareImage.limit,
+		RATE_LIMITS.shareImage.windowMs
+	);
+	if (!limited.allowed) {
+		return new Response('Too many share image requests.', {
+			status: 429,
+			headers: { 'retry-after': String(limited.retryAfter) }
+		});
+	}
+
 	const parsed = bouquetIdSchema.safeParse(params.id);
 	if (!parsed.success) throw error(404, 'Bouquet not found');
 

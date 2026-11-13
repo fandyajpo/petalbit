@@ -62,15 +62,14 @@ function requireRedis(): Redis | null {
 const key = (id: string) => `bouquet:${id}`;
 
 /**
- * Bouquets never change after creation, so a short-lived process-local cache
- * removes repeat Upstash round trips for the same link (a burst of opens, the
- * share page plus its prefetches). Entries expire after 60s and never outlive
- * the bouquet itself.
+ * Bouquets never change after creation, so a process-local cache removes
+ * repeat Upstash round trips for the same link (a burst of opens, the share
+ * page plus its image). Entries never outlive the bouquet itself.
  */
 type CacheEntry = { bouquet: Bouquet; cachedUntil: number };
 
 const CACHE_KEY = Symbol.for('petalbit.read-cache');
-const READ_CACHE_TTL_MS = 60_000;
+const READ_CACHE_TTL_MS = 5 * 60_000;
 const READ_CACHE_MAX = 250;
 
 function readCache(): Map<string, CacheEntry> {
@@ -91,7 +90,45 @@ function cacheGet(id: string): Bouquet | null {
 	return entry.bouquet;
 }
 
+/* Expired or unknown links repeat just as often as real ones. A short negative
+ * cache keeps crawlers and refreshes from turning misses into Redis reads. */
+const MISS_KEY = Symbol.for('petalbit.miss-cache');
+const MISS_TTL_MS = 30_000;
+const MISS_MAX = 500;
+
+function missCache(): Map<string, number> {
+	const globalWithMisses = globalThis as typeof globalThis & {
+		[MISS_KEY]?: Map<string, number>;
+	};
+	if (!globalWithMisses[MISS_KEY]) globalWithMisses[MISS_KEY] = new Map();
+	return globalWithMisses[MISS_KEY];
+}
+
+function isMiss(id: string): boolean {
+	const until = missCache().get(id);
+	if (!until) return false;
+	if (until <= Date.now()) {
+		missCache().delete(id);
+		return false;
+	}
+	return true;
+}
+
+function noteMiss(id: string): void {
+	const cache = missCache();
+	if (cache.size >= MISS_MAX) {
+		const oldest = cache.keys().next().value;
+		if (oldest !== undefined) cache.delete(oldest);
+	}
+	cache.set(id, Date.now() + MISS_TTL_MS);
+}
+
+function clearMiss(id: string): void {
+	missCache().delete(id);
+}
+
 function cacheSet(id: string, bouquet: Bouquet): void {
+	clearMiss(id);
 	const expiresAt = Date.parse(bouquet.createdAt) + BOUQUET_TTL_SECONDS * 1000;
 	const cachedUntil = Number.isFinite(expiresAt)
 		? Math.min(Date.now() + READ_CACHE_TTL_MS, expiresAt)
@@ -126,19 +163,24 @@ export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 export async function getBouquet(id: string): Promise<Bouquet | null> {
 	const cached = cacheGet(id);
 	if (cached) return cached;
+	if (isMiss(id)) return null;
 
 	const db = requireRedis();
 
 	if (db) {
 		// Upstash may return the parsed object or a raw string depending on client.
 		const stored = await db.get<Bouquet | string>(key(id));
-		if (!stored) return null;
+		if (!stored) {
+			noteMiss(id);
+			return null;
+		}
 		if (typeof stored === 'string') {
 			try {
 				const parsed = JSON.parse(stored) as Bouquet;
 				cacheSet(id, parsed);
 				return parsed;
 			} catch {
+				noteMiss(id);
 				return null;
 			}
 		}
@@ -147,9 +189,13 @@ export async function getBouquet(id: string): Promise<Bouquet | null> {
 	}
 
 	const entry = memoryStore().get(key(id));
-	if (!entry) return null;
+	if (!entry) {
+		noteMiss(id);
+		return null;
+	}
 	if (entry.expiresAt <= Date.now()) {
 		memoryStore().delete(key(id));
+		noteMiss(id);
 		return null;
 	}
 	try {
@@ -157,6 +203,7 @@ export async function getBouquet(id: string): Promise<Bouquet | null> {
 		cacheSet(id, parsed);
 		return parsed;
 	} catch {
+		noteMiss(id);
 		return null;
 	}
 }
