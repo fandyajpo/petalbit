@@ -255,9 +255,9 @@
 		inset: 0;
 		background: linear-gradient(
 			180deg,
-			rgb(247 240 231 / 0.28),
-			rgb(247 240 231 / 0.56) 45%,
-			rgb(247 240 231 / 0.8)
+			color-mix(in srgb, var(--color-bone) 68%, transparent),
+			color-mix(in srgb, var(--color-bone) 82%, transparent) 45%,
+			color-mix(in srgb, var(--color-bone) 94%, transparent)
 		);
 	}
 
@@ -305,7 +305,12 @@
 		position: relative;
 		border: 2px solid var(--color-ink);
 		border-radius: 3px;
-		background: radial-gradient(circle at 50% 30%, #fffaf3, var(--color-paper) 60%, #f6e9dc);
+		background: radial-gradient(
+			circle at 50% 30%,
+			var(--color-paper-warm),
+			var(--color-paper) 60%,
+			var(--color-cream-deep)
+		);
 		box-shadow:
 			8px 8px 0 0 var(--color-blush),
 			8px 8px 0 2px var(--color-ink);
@@ -353,8 +358,8 @@
 				180deg,
 				transparent 0,
 				transparent 30px,
-				rgb(43 31 34 / 0.045) 30px,
-				rgb(43 31 34 / 0.045) 31px
+				color-mix(in srgb, var(--color-ink) 6%, transparent) 30px,
+				color-mix(in srgb, var(--color-ink) 6%, transparent) 31px
 			),
 			var(--color-paper);
 		box-shadow: 7px 7px 0 0 var(--color-cream-deep);
@@ -365,7 +370,10 @@
 		content: '';
 		position: absolute;
 		inset: 0;
-		background-image: radial-gradient(rgb(43 31 34 / 0.05) 0.8px, transparent 0.9px);
+		background-image: radial-gradient(
+			color-mix(in srgb, var(--color-ink) 7%, transparent) 0.8px,
+			transparent 0.9px
+		);
 		background-size: 3px 3px;
 		opacity: 0.5;
 		pointer-events: none;
@@ -463,7 +471,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.28rem;
-		border: 1.5px solid rgb(43 31 34 / 0.12);
+		border: 1.5px solid var(--color-rule);
 		border-radius: 2px;
 		background: var(--color-cream);
 		padding: 0.14rem 0.4rem 0.14rem 0.16rem;
@@ -520,7 +528,7 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: flex-start;
-		border-top: 2px dashed rgb(43 31 34 / 0.14);
+		border-top: 2px dashed var(--color-rule);
 		padding-top: 0.85rem;
 		color: var(--color-ink-faint);
 		position: relative;
@@ -554,7 +562,11 @@
 		border: 2px solid var(--color-ink);
 		border-radius: 3px;
 		background:
-			radial-gradient(circle at 90% 10%, rgb(242 214 212 / 0.9), transparent 55%),
+			radial-gradient(
+				circle at 90% 10%,
+				color-mix(in srgb, var(--color-blush) 85%, transparent),
+				transparent 55%
+			),
 			var(--color-blush-soft);
 		padding: clamp(1.1rem, 3vw, 1.6rem);
 		box-shadow: 5px 5px 0 0 var(--color-blush);
@@ -600,13 +612,13 @@
 		display: block;
 		width: 100%;
 		aspect-ratio: 1 / 0.94;
-		border: 1px solid rgb(25 17 16 / 0.16);
+		border: 1px solid var(--color-rule);
 		border-radius: 18px;
-		background: rgb(253 247 238 / 0.5);
+		background: color-mix(in srgb, var(--color-paper) 55%, transparent);
 		padding: 0;
 		overflow: hidden;
 		cursor: pointer;
-		box-shadow: 0 22px 50px -32px rgb(25 17 16 / 0.55);
+		box-shadow: var(--shadow-soft);
 		touch-action: manipulation;
 		-webkit-tap-highlight-color: transparent;
 	}
@@ -729,7 +741,7 @@
 	.art {
 		border: 1px solid var(--color-rule);
 		border-radius: var(--radius);
-		background: linear-gradient(180deg, var(--color-paper), #f7ecdd);
+		background: linear-gradient(180deg, var(--color-paper), var(--color-paper-warm));
 		box-shadow: var(--shadow-soft);
 		padding: 0.7rem 0.5rem 0.35rem;
 	}
@@ -757,8 +769,8 @@
 				180deg,
 				transparent 0,
 				transparent 31px,
-				rgb(25 17 16 / 0.05) 31px,
-				rgb(25 17 16 / 0.05) 32px
+				color-mix(in srgb, var(--color-ink) 6%, transparent) 31px,
+				color-mix(in srgb, var(--color-ink) 6%, transparent) 32px
 			),
 			var(--color-paper);
 	}
@@ -799,7 +811,11 @@
 		border: 1px solid var(--color-rule);
 		border-radius: var(--radius);
 		background:
-			radial-gradient(circle at 92% 8%, rgb(236 207 202 / 0.75), transparent 55%),
+			radial-gradient(
+				circle at 92% 8%,
+				color-mix(in srgb, var(--color-blush) 65%, transparent),
+				transparent 55%
+			),
 			var(--color-paper-warm);
 		box-shadow: none;
 	}

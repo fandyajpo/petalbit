@@ -82,7 +82,7 @@
 		line-height: 1;
 		padding-top: 0.06em;
 		letter-spacing: -0.06em;
-		color: rgb(25 17 16 / 0.06);
+		color: color-mix(in srgb, var(--color-ink) 7%, transparent);
 		pointer-events: none;
 	}
 
@@ -93,7 +93,11 @@
 		width: 52%;
 		height: 10%;
 		transform: translateX(-50%);
-		background: radial-gradient(ellipse at center, rgb(124 42 60 / 0.18), transparent 70%);
+		background: radial-gradient(
+			ellipse at center,
+			color-mix(in srgb, var(--color-rose-deep) 22%, transparent),
+			transparent 70%
+		);
 	}
 
 	.oops-copy h1 {

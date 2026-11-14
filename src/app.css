@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './lib/theme/time-themes.css';
 
 @theme {
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
@@ -15,7 +16,7 @@
 	/* Ink */
 	--color-ink: #191110;
 	--color-ink-soft: #5c4b49;
-	--color-ink-faint: #8c7a72;
+	--color-ink-faint: #75645c;
 	--color-rule: rgb(25 17 16 / 0.16);
 	--color-rule-soft: rgb(25 17 16 / 0.08);
 
@@ -29,6 +30,29 @@
 	--color-sage-deep: #40503a;
 	--color-lilac: #9a86ae;
 	--color-gold: #b1833f;
+
+	/* Chrome, states + inverse surfaces */
+	--color-header-bg: rgb(241 232 218 / 0.82);
+	--color-header-bg-scrolled: rgb(241 232 218 / 0.93);
+	--color-on-accent: #fff7ef;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #a02f40;
+	--color-inverse-surface: #191110;
+	--color-inverse-ink: #fbf6ec;
+	--color-inverse-muted: #c9bcb2;
+	--color-focus: #ad3648;
+	--color-success: #6c7f5d;
+	--color-success-deep: #40503a;
+	--color-warning: #b1833f;
+	--color-warning-deep: #7a5725;
+	--color-error: #ad3648;
+	--color-error-deep: #6d1d29;
+	--color-info: #4e7187;
+	--color-info-deep: #365264;
+	--theme-bg-image:
+		radial-gradient(rgb(25 17 16 / 0.032) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 60% at 50% -10%, rgb(251 246 236 / 0.9), transparent 70%);
+	--theme-glow: rgb(236 207 202 / 0.55);
 
 	/* Shape + depth */
 	--radius: 2px;
@@ -76,12 +100,12 @@
 
 	body {
 		background-color: var(--color-bone);
-		background-image:
-			radial-gradient(rgb(25 17 16 / 0.032) 0.7px, transparent 0.8px),
-			radial-gradient(ellipse 120% 60% at 50% -10%, rgb(251 246 236 / 0.9), transparent 70%);
+		background-image: var(--theme-bg-image);
 		background-size:
 			3px 3px,
+			100% 100%,
 			100% 100%;
+		background-attachment: fixed;
 		color: var(--color-ink);
 		font-family: var(--font-sans);
 		font-weight: 400;
@@ -114,12 +138,25 @@
 
 	::selection {
 		background: var(--color-rose);
-		color: #fff6ec;
+		color: var(--color-on-accent);
 	}
 
 	:focus-visible {
-		outline: 2px solid var(--color-rose);
+		outline: 2px solid var(--color-focus);
 		outline-offset: 3px;
+	}
+
+	/* Palettes swap through CSS variables; this short, temporary class lets
+	   every surface cross-fade without fighting each component's own hover
+	   and motion transitions. */
+	@media (prefers-reduced-motion: no-preference) {
+		html.theme-transition *,
+		html.theme-transition *::before,
+		html.theme-transition *::after {
+			transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+			transition-duration: 900ms !important;
+			transition-timing-function: ease !important;
+		}
 	}
 
 	hr {
@@ -274,11 +311,11 @@
 	.btn-primary {
 		background: var(--color-rose);
 		border-color: var(--color-rose-deep);
-		color: #fff7ef;
+		color: var(--color-on-accent);
 	}
 
 	.btn-primary:hover {
-		background: #a02f40;
+		background: var(--color-rose-hover);
 		box-shadow: 3px 3px 0 0 var(--color-rose-deep);
 	}
 
@@ -453,14 +490,14 @@
 	}
 
 	.field-input:hover {
-		border-color: rgb(25 17 16 / 0.3);
+		border-color: color-mix(in srgb, var(--color-ink) 32%, transparent);
 	}
 
 	.field-input:focus {
 		outline: none;
 		border-color: var(--color-rose);
 		box-shadow: 2px 2px 0 0 var(--color-blush);
-		background: #fffdf7;
+		background: var(--color-paper-warm);
 	}
 
 	/* Keyboard focus keeps a real ring; pointer focus uses the offset shadow. */
@@ -470,8 +507,8 @@
 	}
 
 	.field-input[aria-invalid='true'] {
-		border-color: var(--color-rose);
-		box-shadow: 2px 2px 0 0 rgb(173 54 72 / 0.2);
+		border-color: var(--color-error);
+		box-shadow: 2px 2px 0 0 color-mix(in srgb, var(--color-error) 24%, transparent);
 	}
 
 	.field-hint {
@@ -498,9 +535,11 @@
 		inset: 0;
 		pointer-events: none;
 		opacity: 0.28;
-		background-image: radial-gradient(rgb(25 17 16 / 0.07) 0.7px, transparent 0.8px);
+		background-image: radial-gradient(
+			color-mix(in srgb, var(--color-ink) 12%, transparent) 0.7px,
+			transparent 0.8px
+		);
 		background-size: 3px 3px;
-		mix-blend-mode: multiply;
 	}
 
 	.dither {
@@ -543,7 +582,7 @@
 		z-index: -1;
 		background: radial-gradient(
 			220px circle at var(--mx, 50%) var(--my, 50%),
-			rgb(236 207 202 / 0.75),
+			color-mix(in srgb, var(--color-blush) 75%, transparent),
 			transparent 62%
 		);
 		opacity: 0;
@@ -769,7 +808,7 @@ html[data-nav='back']::view-transition-new(page-main) {
 html,
 body {
 	scrollbar-width: thin;
-	scrollbar-color: rgb(173 54 72 / 0.45) transparent;
+	scrollbar-color: color-mix(in srgb, var(--color-rose) 55%, transparent) transparent;
 }
 
 html::-webkit-scrollbar,
@@ -785,11 +824,11 @@ body::-webkit-scrollbar-track {
 
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb {
-	background: rgb(173 54 72 / 0.45);
+	background: color-mix(in srgb, var(--color-rose) 55%, transparent);
 	border-radius: 999px;
 }
 
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
-	background: rgb(173 54 72 / 0.72);
+	background: var(--color-rose);
 }

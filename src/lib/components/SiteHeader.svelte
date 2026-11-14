@@ -140,7 +140,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 60;
-		background: rgb(241 232 218 / 0.82);
+		background: var(--color-header-bg);
 		backdrop-filter: blur(14px) saturate(1.05);
 		border-bottom: 1px solid transparent;
 		transition:
@@ -150,7 +150,7 @@
 
 	.site-header.scrolled {
 		border-bottom-color: var(--color-rule);
-		background: rgb(241 232 218 / 0.93);
+		background: var(--color-header-bg-scrolled);
 	}
 
 	.bar {
@@ -183,7 +183,7 @@
 		height: 30px;
 		margin-top: -15px;
 		border-radius: var(--radius);
-		background: rgb(25 17 16 / 0.06);
+		background: color-mix(in srgb, var(--color-ink) 7%, transparent);
 		opacity: 0;
 		width: 0;
 		transition:
@@ -278,8 +278,8 @@
 		opacity: 1;
 		padding-block: 1rem 1.4rem;
 		border-top-color: var(--color-rule-soft);
-		background: var(--color-bone);
-		box-shadow: 0 22px 30px -30px rgb(25 17 16 / 0.5);
+		background: var(--color-paper-warm);
+		box-shadow: 0 22px 30px -30px color-mix(in srgb, var(--color-ink) 55%, transparent);
 	}
 
 	.panel nav {

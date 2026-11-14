@@ -267,8 +267,8 @@
 	.send-ready {
 		justify-self: start;
 		border-radius: 999px;
-		background: var(--color-sage);
-		color: #fff;
+		background: var(--color-sage-deep);
+		color: var(--color-on-sage);
 		padding: 0.12rem 0.38rem;
 		font-family: var(--font-mono);
 		font-size: 0.4rem;

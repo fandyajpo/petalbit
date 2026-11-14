@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "theme:check": "node scripts/check-themes.mjs",
     "art": "node scripts/generate-art.mjs"
   },
   "devDependencies": {

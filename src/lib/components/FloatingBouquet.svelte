@@ -291,10 +291,10 @@
 		width: 172px;
 		display: flex;
 		flex-direction: column;
-		border: 1px solid rgb(25 17 16 / 0.2);
+		border: 1px solid var(--color-rule);
 		border-radius: 14px;
 		background: var(--color-paper);
-		box-shadow: 0 18px 34px -18px rgb(25 17 16 / 0.45);
+		box-shadow: var(--shadow-soft);
 		-webkit-user-select: none;
 		user-select: none;
 		overscroll-behavior: contain;
@@ -311,8 +311,8 @@
 	.floating.dragging {
 		scale: 1.04;
 		cursor: grabbing;
-		border-color: rgb(25 17 16 / 0.3);
-		box-shadow: 0 28px 48px -18px rgb(25 17 16 / 0.52);
+		border-color: color-mix(in srgb, var(--color-ink) 38%, transparent);
+		box-shadow: var(--shadow-soft);
 		will-change: transform;
 		transition:
 			scale 120ms var(--ease-out),

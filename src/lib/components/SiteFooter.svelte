@@ -65,8 +65,8 @@
 	.site-footer {
 		position: relative;
 		margin-top: clamp(4rem, 8vw, 6rem);
-		background: var(--color-ink);
-		color: var(--color-paper);
+		background: var(--color-inverse-surface);
+		color: var(--color-inverse-ink);
 		overflow: hidden;
 	}
 
@@ -83,7 +83,7 @@
 		max-width: 32ch;
 		font-size: 0.85rem;
 		line-height: 1.75;
-		color: rgb(251 246 236 / 0.62);
+		color: color-mix(in srgb, var(--color-inverse-ink) 72%, transparent);
 	}
 
 	.top-link {
@@ -91,17 +91,17 @@
 		margin-top: 1.2rem;
 		color: var(--color-rose-light);
 		text-decoration: none;
-		border-bottom: 1px solid rgb(223 154 166 / 0.35);
+		border-bottom: 1px solid color-mix(in srgb, var(--color-rose-light) 55%, transparent);
 		padding-bottom: 0.15rem;
 	}
 
 	.top-link:hover {
-		color: var(--color-paper);
-		border-bottom-color: var(--color-paper);
+		color: var(--color-inverse-ink);
+		border-bottom-color: var(--color-inverse-ink);
 	}
 
 	.col-title {
-		color: rgb(251 246 236 / 0.42);
+		color: color-mix(in srgb, var(--color-inverse-ink) 68%, transparent);
 		margin-bottom: 0.9rem;
 	}
 
@@ -113,7 +113,7 @@
 	}
 
 	.links a {
-		color: rgb(251 246 236 / 0.84);
+		color: color-mix(in srgb, var(--color-inverse-ink) 88%, transparent);
 		text-decoration: none;
 		font-size: 0.88rem;
 		position: relative;
@@ -158,7 +158,7 @@
 		max-width: 28ch;
 		font-size: 0.76rem;
 		line-height: 1.7;
-		color: rgb(251 246 236 / 0.4);
+		color: color-mix(in srgb, var(--color-inverse-ink) 64%, transparent);
 	}
 
 	.wordmark-wrap {
@@ -177,7 +177,7 @@
 		line-height: 0.82;
 		letter-spacing: -0.055em;
 		color: transparent;
-		-webkit-text-stroke: 1px rgb(251 246 236 / 0.24);
+		-webkit-text-stroke: 1px color-mix(in srgb, var(--color-inverse-ink) 26%, transparent);
 		user-select: none;
 		white-space: nowrap;
 	}
@@ -186,12 +186,12 @@
 		position: relative;
 		z-index: 2;
 		padding-block: 1.1rem 1.6rem;
-		border-top: 1px solid rgb(251 246 236 / 0.1);
+		border-top: 1px solid color-mix(in srgb, var(--color-inverse-ink) 14%, transparent);
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem 1.4rem;
 		justify-content: space-between;
-		color: rgb(251 246 236 / 0.38);
+		color: color-mix(in srgb, var(--color-inverse-ink) 62%, transparent);
 		font-size: 0.58rem;
 	}
 
@@ -201,7 +201,7 @@
 		text-transform: none;
 		letter-spacing: 0;
 		font-size: 0.72rem;
-		color: rgb(251 246 236 / 0.5);
+		color: color-mix(in srgb, var(--color-inverse-ink) 70%, transparent);
 	}
 
 	.sr-only {

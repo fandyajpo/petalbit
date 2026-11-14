@@ -44,7 +44,7 @@
 		height: 30px;
 		border: 1px solid var(--color-rule);
 		border-radius: 999px;
-		background: rgb(255 253 247 / 0.55);
+		background: color-mix(in srgb, var(--color-paper) 55%, transparent);
 		color: var(--color-ink-faint);
 		cursor: pointer;
 		transition:

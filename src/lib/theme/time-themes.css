@@ -1,0 +1,463 @@
+/*
+ * Time-of-day design tokens.
+ *
+ * The schedule lives in `time-theme.ts`; these blocks are the complete visual
+ * systems for each phase. Every page reads the same semantic variables, so a
+ * phase change repaints the whole site without component-level branching.
+ */
+
+[data-time-theme='midnight'] {
+	--color-bone: #0c1020;
+	--color-cream: #0f1426;
+	--color-cream-deep: #1b2238;
+	--color-paper: #151b2c;
+	--color-paper-warm: #1d2438;
+	--color-ink: #f5f1e8;
+	--color-ink-soft: #d0cbd9;
+	--color-ink-faint: #aaa7b8;
+	--color-rule: rgb(245 241 232 / 0.2);
+	--color-rule-soft: rgb(245 241 232 / 0.1);
+	--color-rose: #e899a8;
+	--color-rose-deep: #f6bcc6;
+	--color-rose-light: #f6c9d1;
+	--color-blush: #523041;
+	--color-blush-soft: #2d2233;
+	--color-sage: #a9c49b;
+	--color-sage-deep: #cfe3c5;
+	--color-lilac: #c8b8e8;
+	--color-gold: #eac37e;
+	--color-header-bg: rgb(12 16 32 / 0.82);
+	--color-header-bg-scrolled: rgb(12 16 32 / 0.94);
+	--color-on-accent: #1a1017;
+	--color-on-sage: #132016;
+	--color-rose-hover: #f0a8b6;
+	--color-inverse-surface: #070a14;
+	--color-inverse-ink: #f7f2e8;
+	--color-inverse-muted: #b5b1c2;
+	--color-focus: #f6bcc6;
+	--color-success: #9fc596;
+	--color-success-deep: #cfe6c8;
+	--color-warning: #e8c07a;
+	--color-warning-deep: #f4dca8;
+	--color-error: #f1a0ae;
+	--color-error-deep: #f8c4ce;
+	--color-info: #a9c9e8;
+	--color-info-deep: #cfe2f4;
+	--theme-bg-image:
+		radial-gradient(rgb(255 255 255 / 0.045) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 70% at 70% -12%, rgb(198 206 238 / 0.12), transparent 68%),
+		radial-gradient(ellipse 80% 50% at 20% 110%, rgb(78 62 104 / 0.22), transparent 70%);
+	--shadow-soft: 0 18px 40px -28px rgb(0 0 0 / 0.8);
+	--theme-glow: rgb(198 206 238 / 0.16);
+}
+
+[data-time-theme='dawn'] {
+	--color-bone: #1c2038;
+	--color-cream: #202541;
+	--color-cream-deep: #313756;
+	--color-paper: #262a47;
+	--color-paper-warm: #303451;
+	--color-ink: #fff0ea;
+	--color-ink-soft: #ded3dc;
+	--color-ink-faint: #b3a9ba;
+	--color-rule: rgb(255 240 234 / 0.2);
+	--color-rule-soft: rgb(255 240 234 / 0.1);
+	--color-rose: #f0a3a8;
+	--color-rose-deep: #ffc4c2;
+	--color-rose-light: #f3c1be;
+	--color-blush: #5b3549;
+	--color-blush-soft: #38243c;
+	--color-sage: #b5c9a5;
+	--color-sage-deep: #d7e7cc;
+	--color-lilac: #d3c1ec;
+	--color-gold: #f0c98b;
+	--color-header-bg: rgb(28 32 56 / 0.82);
+	--color-header-bg-scrolled: rgb(28 32 56 / 0.94);
+	--color-on-accent: #2a1218;
+	--color-on-sage: #172015;
+	--color-rose-hover: #f7b3b2;
+	--color-inverse-surface: #11132a;
+	--color-inverse-ink: #fff3ec;
+	--color-inverse-muted: #c5b8c5;
+	--color-focus: #ffc4c2;
+	--color-success: #a9c79a;
+	--color-success-deep: #d5e8cb;
+	--color-warning: #efc27e;
+	--color-warning-deep: #f8dea9;
+	--color-error: #f3a9b0;
+	--color-error-deep: #f9c9ce;
+	--color-info: #aecbe9;
+	--color-info-deep: #d1e4f4;
+	--theme-bg-image:
+		radial-gradient(rgb(255 255 255 / 0.04) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 70% at 50% 115%, rgb(228 148 116 / 0.3), transparent 62%),
+		radial-gradient(ellipse 100% 60% at 50% -10%, rgb(120 104 172 / 0.24), transparent 68%);
+	--shadow-soft: 0 18px 40px -28px rgb(5 5 16 / 0.8);
+	--theme-glow: rgb(228 148 116 / 0.25);
+}
+
+[data-time-theme='morning'] {
+	--color-bone: #f1e8da;
+	--color-cream: #f1e8da;
+	--color-cream-deep: #e5d6c2;
+	--color-paper: #fbf6ec;
+	--color-paper-warm: #f7efe2;
+	--color-ink: #191110;
+	--color-ink-soft: #5c4b49;
+	--color-ink-faint: #75645c;
+	--color-rule: rgb(25 17 16 / 0.16);
+	--color-rule-soft: rgb(25 17 16 / 0.08);
+	--color-rose: #ad3648;
+	--color-rose-deep: #6d1d29;
+	--color-rose-light: #df9aa6;
+	--color-blush: #eccfca;
+	--color-blush-soft: #f7e7e2;
+	--color-sage: #6c7f5d;
+	--color-sage-deep: #40503a;
+	--color-lilac: #9a86ae;
+	--color-gold: #b1833f;
+	--color-header-bg: rgb(241 232 218 / 0.82);
+	--color-header-bg-scrolled: rgb(241 232 218 / 0.93);
+	--color-on-accent: #fff7ef;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #a02f40;
+	--color-inverse-surface: #191110;
+	--color-inverse-ink: #fbf6ec;
+	--color-inverse-muted: #c9bcb2;
+	--color-focus: #ad3648;
+	--color-success: #6c7f5d;
+	--color-success-deep: #40503a;
+	--color-warning: #b1833f;
+	--color-warning-deep: #7a5725;
+	--color-error: #ad3648;
+	--color-error-deep: #6d1d29;
+	--color-info: #4e7187;
+	--color-info-deep: #365264;
+	--theme-bg-image:
+		radial-gradient(rgb(25 17 16 / 0.032) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 60% at 50% -10%, rgb(251 246 236 / 0.9), transparent 70%);
+	--shadow-soft: 0 18px 40px -28px rgb(25 17 16 / 0.55);
+	--theme-glow: rgb(236 207 202 / 0.55);
+}
+
+[data-time-theme='late-morning'] {
+	--color-bone: #f3f0e8;
+	--color-cream: #f3f0e8;
+	--color-cream-deep: #e7e0d2;
+	--color-paper: #fffdf8;
+	--color-paper-warm: #f8f4eb;
+	--color-ink: #1b1512;
+	--color-ink-soft: #5b4e49;
+	--color-ink-faint: #74645c;
+	--color-rule: rgb(27 21 18 / 0.15);
+	--color-rule-soft: rgb(27 21 18 / 0.075);
+	--color-rose: #a8384b;
+	--color-rose-deep: #6a1f2a;
+	--color-rose-light: #dfa3ac;
+	--color-blush: #ead2cf;
+	--color-blush-soft: #f8ece8;
+	--color-sage: #6d7f5e;
+	--color-sage-deep: #405139;
+	--color-lilac: #9585ac;
+	--color-gold: #a97a36;
+	--color-header-bg: rgb(243 240 232 / 0.82);
+	--color-header-bg-scrolled: rgb(243 240 232 / 0.94);
+	--color-on-accent: #fff7ef;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #962f41;
+	--color-inverse-surface: #1b1512;
+	--color-inverse-ink: #fffdf8;
+	--color-inverse-muted: #cfc5bc;
+	--color-focus: #a8384b;
+	--color-success: #6d7f5e;
+	--color-success-deep: #405139;
+	--color-warning: #a97a36;
+	--color-warning-deep: #73501f;
+	--color-error: #a8384b;
+	--color-error-deep: #6a1f2a;
+	--color-info: #4c6f86;
+	--color-info-deep: #345062;
+	--theme-bg-image:
+		radial-gradient(rgb(27 21 18 / 0.028) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 60% at 50% -10%, rgb(255 253 248 / 0.95), transparent 72%);
+	--shadow-soft: 0 18px 40px -28px rgb(27 21 18 / 0.45);
+	--theme-glow: rgb(223 163 172 / 0.32);
+}
+
+[data-time-theme='midday'] {
+	--color-bone: #f7f1e3;
+	--color-cream: #f7f1e3;
+	--color-cream-deep: #e9dfcc;
+	--color-paper: #fffdf7;
+	--color-paper-warm: #fbf4e8;
+	--color-ink: #1b120f;
+	--color-ink-soft: #5d4a42;
+	--color-ink-faint: #766254;
+	--color-rule: rgb(27 18 15 / 0.15);
+	--color-rule-soft: rgb(27 18 15 / 0.075);
+	--color-rose: #b02f43;
+	--color-rose-deep: #701c2a;
+	--color-rose-light: #e5a1ab;
+	--color-blush: #f0d3c9;
+	--color-blush-soft: #fbebe3;
+	--color-sage: #697f58;
+	--color-sage-deep: #3d5032;
+	--color-lilac: #9884b0;
+	--color-gold: #a9772c;
+	--color-header-bg: rgb(247 241 227 / 0.84);
+	--color-header-bg-scrolled: rgb(247 241 227 / 0.95);
+	--color-on-accent: #fff8f0;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #9c293b;
+	--color-inverse-surface: #1b120f;
+	--color-inverse-ink: #fffdf7;
+	--color-inverse-muted: #d2c3b6;
+	--color-focus: #b02f43;
+	--color-success: #697f58;
+	--color-success-deep: #3d5032;
+	--color-warning: #a9772c;
+	--color-warning-deep: #714d18;
+	--color-error: #b02f43;
+	--color-error-deep: #701c2a;
+	--color-info: #496f88;
+	--color-info-deep: #325064;
+	--theme-bg-image:
+		radial-gradient(rgb(27 18 15 / 0.026) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 65% at 50% -10%, rgb(255 253 247 / 0.95), transparent 72%),
+		radial-gradient(ellipse 70% 40% at 85% 105%, rgb(240 211 201 / 0.5), transparent 70%);
+	--shadow-soft: 0 18px 40px -28px rgb(27 18 15 / 0.42);
+	--theme-glow: rgb(240 211 201 / 0.5);
+}
+
+[data-time-theme='afternoon'] {
+	--color-bone: #f2e7d6;
+	--color-cream: #f2e7d6;
+	--color-cream-deep: #e6d7c1;
+	--color-paper: #fff9ef;
+	--color-paper-warm: #f8efe0;
+	--color-ink: #21160f;
+	--color-ink-soft: #5f4b40;
+	--color-ink-faint: #786353;
+	--color-rule: rgb(33 22 15 / 0.16);
+	--color-rule-soft: rgb(33 22 15 / 0.08);
+	--color-rose: #a83c4a;
+	--color-rose-deep: #6f222d;
+	--color-rose-light: #dda2a5;
+	--color-blush: #efd2c6;
+	--color-blush-soft: #f9e9df;
+	--color-sage: #6b7e58;
+	--color-sage-deep: #3f5032;
+	--color-lilac: #9583a9;
+	--color-gold: #a3722f;
+	--color-header-bg: rgb(242 231 214 / 0.84);
+	--color-header-bg-scrolled: rgb(242 231 214 / 0.95);
+	--color-on-accent: #fff7ee;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #963442;
+	--color-inverse-surface: #21160f;
+	--color-inverse-ink: #fff9ef;
+	--color-inverse-muted: #d2c2b2;
+	--color-focus: #a83c4a;
+	--color-success: #6b7e58;
+	--color-success-deep: #3f5032;
+	--color-warning: #a3722f;
+	--color-warning-deep: #6e4b1a;
+	--color-error: #a83c4a;
+	--color-error-deep: #6f222d;
+	--color-info: #4a6d84;
+	--color-info-deep: #334f61;
+	--theme-bg-image:
+		radial-gradient(rgb(33 22 15 / 0.028) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 60% at 50% -10%, rgb(255 249 239 / 0.95), transparent 72%),
+		radial-gradient(ellipse 65% 45% at 88% 110%, rgb(221 162 165 / 0.35), transparent 68%);
+	--shadow-soft: 0 18px 40px -28px rgb(33 22 15 / 0.48);
+	--theme-glow: rgb(221 162 165 / 0.4);
+}
+
+[data-time-theme='golden'] {
+	--color-bone: #f2e1c8;
+	--color-cream: #f2e1c8;
+	--color-cream-deep: #e8d3b5;
+	--color-paper: #fff8ec;
+	--color-paper-warm: #f9edd9;
+	--color-ink: #2a1b12;
+	--color-ink-soft: #6a5143;
+	--color-ink-faint: #71594a;
+	--color-rule: rgb(42 27 18 / 0.17);
+	--color-rule-soft: rgb(42 27 18 / 0.085);
+	--color-rose: #9c3a3e;
+	--color-rose-deep: #6e242a;
+	--color-rose-light: #dba192;
+	--color-blush: #eed3b8;
+	--color-blush-soft: #f8e8d2;
+	--color-sage: #6d7c53;
+	--color-sage-deep: #414e31;
+	--color-lilac: #95809f;
+	--color-gold: #8a5a1f;
+	--color-header-bg: rgb(242 225 200 / 0.85);
+	--color-header-bg-scrolled: rgb(242 225 200 / 0.95);
+	--color-on-accent: #fff8ee;
+	--color-on-sage: #fdfbf4;
+	--color-rose-hover: #873135;
+	--color-inverse-surface: #2a1b12;
+	--color-inverse-ink: #fff8ec;
+	--color-inverse-muted: #d6c2a8;
+	--color-focus: #9c3a3e;
+	--color-success: #6d7c53;
+	--color-success-deep: #414e31;
+	--color-warning: #8a5a1f;
+	--color-warning-deep: #5e3d13;
+	--color-error: #9c3a3e;
+	--color-error-deep: #6e242a;
+	--color-info: #4c6a7c;
+	--color-info-deep: #354d5b;
+	--theme-bg-image:
+		radial-gradient(rgb(42 27 18 / 0.03) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 65% at 50% -12%, rgb(255 248 236 / 0.9), transparent 70%),
+		radial-gradient(ellipse 75% 50% at 90% 112%, rgb(219 161 146 / 0.38), transparent 68%);
+	--shadow-soft: 0 18px 40px -28px rgb(42 27 18 / 0.5);
+	--theme-glow: rgb(219 161 146 / 0.45);
+}
+
+[data-time-theme='sunset'] {
+	--color-bone: #35203c;
+	--color-cream: #39233f;
+	--color-cream-deep: #5a3958;
+	--color-paper: #432a47;
+	--color-paper-warm: #4c304f;
+	--color-ink: #fff1e8;
+	--color-ink-soft: #e0cbd1;
+	--color-ink-faint: #c1aeba;
+	--color-rule: rgb(255 241 232 / 0.2);
+	--color-rule-soft: rgb(255 241 232 / 0.1);
+	--color-rose: #ff9f9a;
+	--color-rose-deep: #ffc9b7;
+	--color-rose-light: #ffb9ad;
+	--color-blush: #633a51;
+	--color-blush-soft: #3a223c;
+	--color-sage: #b5c9a0;
+	--color-sage-deep: #d6e6c8;
+	--color-lilac: #d7c2ea;
+	--color-gold: #f0bd78;
+	--color-header-bg: rgb(53 32 60 / 0.84);
+	--color-header-bg-scrolled: rgb(53 32 60 / 0.95);
+	--color-on-accent: #2a121c;
+	--color-on-sage: #172015;
+	--color-rose-hover: #ffb0a8;
+	--color-inverse-surface: #1a0f20;
+	--color-inverse-ink: #fff1e8;
+	--color-inverse-muted: #d3bcc8;
+	--color-focus: #ffc9b7;
+	--color-success: #b5c9a0;
+	--color-success-deep: #d6e6c8;
+	--color-warning: #f0bd78;
+	--color-warning-deep: #f8d9a6;
+	--color-error: #ffb3ab;
+	--color-error-deep: #ffd0c8;
+	--color-info: #b6cbe6;
+	--color-info-deep: #d7e5f4;
+	--theme-bg-image:
+		radial-gradient(rgb(255 255 255 / 0.035) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 120% 80% at 85% 112%, rgb(255 150 112 / 0.34), transparent 62%),
+		radial-gradient(ellipse 90% 60% at 20% -10%, rgb(126 74 150 / 0.3), transparent 68%);
+	--shadow-soft: 0 18px 40px -28px rgb(12 6 16 / 0.75);
+	--theme-glow: rgb(255 160 130 / 0.28);
+}
+
+[data-time-theme='evening'] {
+	--color-bone: #161a2e;
+	--color-cream: #191d32;
+	--color-cream-deep: #303755;
+	--color-paper: #20253d;
+	--color-paper-warm: #272d47;
+	--color-ink: #f4eef5;
+	--color-ink-soft: #cec8d9;
+	--color-ink-faint: #aaa4b9;
+	--color-rule: rgb(244 238 245 / 0.2);
+	--color-rule-soft: rgb(244 238 245 / 0.1);
+	--color-rose: #e9a0b1;
+	--color-rose-deep: #f6c1cb;
+	--color-rose-light: #f3c3ce;
+	--color-blush: #4a2f47;
+	--color-blush-soft: #2b2239;
+	--color-sage: #aec7a2;
+	--color-sage-deep: #d3e3ca;
+	--color-lilac: #cbbce8;
+	--color-gold: #e6bf80;
+	--color-header-bg: rgb(22 26 46 / 0.85);
+	--color-header-bg-scrolled: rgb(22 26 46 / 0.95);
+	--color-on-accent: #1c1218;
+	--color-on-sage: #152014;
+	--color-rose-hover: #f0b1bf;
+	--color-inverse-surface: #0d1020;
+	--color-inverse-ink: #f4eef5;
+	--color-inverse-muted: #bcb5c7;
+	--color-focus: #f6c1cb;
+	--color-success: #aec7a2;
+	--color-success-deep: #d3e3ca;
+	--color-warning: #e6bf80;
+	--color-warning-deep: #f3d9aa;
+	--color-error: #f2aeb8;
+	--color-error-deep: #f8cbd2;
+	--color-info: #adc8e6;
+	--color-info-deep: #d2e3f4;
+	--theme-bg-image:
+		radial-gradient(rgb(255 255 255 / 0.04) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 100% 60% at 50% -10%, rgb(138 120 190 / 0.18), transparent 68%),
+		radial-gradient(ellipse 70% 50% at 15% 112%, rgb(90 64 118 / 0.24), transparent 70%);
+	--shadow-soft: 0 18px 40px -28px rgb(5 6 14 / 0.78);
+	--theme-glow: rgb(138 120 190 / 0.22);
+}
+
+[data-time-theme='night'] {
+	--color-bone: #0a0f1e;
+	--color-cream: #0d1224;
+	--color-cream-deep: #222c44;
+	--color-paper: #131a2c;
+	--color-paper-warm: #1a2236;
+	--color-ink: #f3f0e9;
+	--color-ink-soft: #cbc8d7;
+	--color-ink-faint: #a6a4b6;
+	--color-rule: rgb(243 240 233 / 0.2);
+	--color-rule-soft: rgb(243 240 233 / 0.1);
+	--color-rose: #e79aab;
+	--color-rose-deep: #f4bcc7;
+	--color-rose-light: #f1c3cd;
+	--color-blush: #4a2c3d;
+	--color-blush-soft: #291f31;
+	--color-sage: #a9c49b;
+	--color-sage-deep: #d0e4c6;
+	--color-lilac: #c6b7e5;
+	--color-gold: #eac37e;
+	--color-header-bg: rgb(10 15 30 / 0.86);
+	--color-header-bg-scrolled: rgb(10 15 30 / 0.96);
+	--color-on-accent: #1a1017;
+	--color-on-sage: #132016;
+	--color-rose-hover: #f0a9b8;
+	--color-inverse-surface: #05080f;
+	--color-inverse-ink: #f3f0e9;
+	--color-inverse-muted: #b4b0c0;
+	--color-focus: #f4bcc7;
+	--color-success: #a9c49b;
+	--color-success-deep: #d0e4c6;
+	--color-warning: #eac37e;
+	--color-warning-deep: #f4dba9;
+	--color-error: #f1a5b1;
+	--color-error-deep: #f8c8d1;
+	--color-info: #a9c9e8;
+	--color-info-deep: #cfe2f4;
+	--theme-bg-image:
+		radial-gradient(rgb(255 255 255 / 0.045) 0.7px, transparent 0.8px),
+		radial-gradient(ellipse 110% 65% at 75% -12%, rgb(170 186 225 / 0.1), transparent 68%),
+		radial-gradient(ellipse 80% 50% at 15% 112%, rgb(70 54 100 / 0.22), transparent 70%);
+	--shadow-soft: 0 18px 40px -28px rgb(0 0 0 / 0.82);
+	--theme-glow: rgb(170 186 225 / 0.14);
+}
+
+[data-time-scheme='dark'] {
+	color-scheme: dark;
+}
+
+[data-time-scheme='light'] {
+	color-scheme: light;
+}

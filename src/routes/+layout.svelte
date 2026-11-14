@@ -8,6 +8,7 @@
 	import PixelButterfly from '$lib/components/PixelButterfly.svelte';
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
 	import PetalFX from '$lib/components/PetalFX.svelte';
+	import TimeThemeProvider from '$lib/theme/TimeThemeProvider.svelte';
 
 	let { children } = $props();
 
@@ -74,17 +75,19 @@
 	});
 </script>
 
-<IntroLoader />
-<PetalFX />
+<TimeThemeProvider>
+	<IntroLoader />
+	<PetalFX />
 
-{#if !isBouquetPage}
-	<RoundLines />
-	<PixelButterfly />
-	<SiteHeader />
-{/if}
-<main id="top">
-	{@render children()}
-</main>
-{#if !isBouquetPage}
-	<SiteFooter />
-{/if}
+	{#if !isBouquetPage}
+		<RoundLines />
+		<PixelButterfly />
+		<SiteHeader />
+	{/if}
+	<main id="top">
+		{@render children()}
+	</main>
+	{#if !isBouquetPage}
+		<SiteFooter />
+	{/if}
+</TimeThemeProvider>

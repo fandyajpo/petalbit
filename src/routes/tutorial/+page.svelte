@@ -255,7 +255,7 @@
 	.facts li {
 		border: 1px solid var(--color-rule);
 		border-radius: 999px;
-		background: rgb(255 253 247 / 0.7);
+		background: color-mix(in srgb, var(--color-paper) 70%, transparent);
 		padding: 0.28rem 0.62rem;
 		font-family: var(--font-mono);
 		font-size: 0.54rem;
@@ -273,7 +273,7 @@
 	.art-card {
 		border: 1px solid var(--color-rule);
 		border-radius: 14px;
-		background: linear-gradient(180deg, var(--color-paper), #f7ecdd);
+		background: linear-gradient(180deg, var(--color-paper), var(--color-paper-warm));
 		box-shadow: var(--shadow-soft);
 		padding: 0.7rem;
 	}
@@ -320,7 +320,7 @@
 		gap: 0.35rem;
 		border: 1px solid var(--color-rule-soft);
 		border-radius: 999px;
-		background: rgb(255 253 247 / 0.9);
+		background: color-mix(in srgb, var(--color-paper) 90%, transparent);
 		padding: 0.24rem 0.6rem 0.24rem 0.24rem;
 		font-family: var(--font-mono);
 		font-size: 0.5rem;
@@ -352,13 +352,13 @@
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		background: rgb(25 17 16 / 0.06);
+		background: color-mix(in srgb, var(--color-ink) 7%, transparent);
 		font-size: 0.42rem;
 	}
 
 	.walk-rail a.active .rail-n {
 		background: var(--color-rose);
-		color: #fff7ef;
+		color: var(--color-on-accent);
 	}
 
 	.guide {
@@ -418,9 +418,9 @@
 	.guide-step.current .step-n {
 		background: var(--color-rose);
 		border-color: var(--color-rose-deep);
-		color: #fff7ef;
+		color: var(--color-on-accent);
 		transform: scale(1.08);
-		box-shadow: 0 0 0 5px rgb(173 54 72 / 0.12);
+		box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-rose) 18%, transparent);
 	}
 
 	.guide-step.in .step-tips li {
@@ -494,7 +494,11 @@
 		margin-top: 0.55rem;
 		border: 1px solid var(--color-rule-soft);
 		border-radius: 10px;
-		background: radial-gradient(circle at 50% 85%, rgb(236 207 202 / 0.4), transparent 70%), var(--color-paper-warm);
+		background: radial-gradient(
+			circle at 50% 85%,
+			color-mix(in srgb, var(--color-blush) 40%, transparent),
+			transparent 70%
+		), var(--color-paper-warm);
 		padding: 0.4rem;
 		overflow: hidden;
 		opacity: 0;
@@ -513,7 +517,7 @@
 
 	.guide-step.current .step-art {
 		border-color: var(--color-rose-light);
-		box-shadow: 0 10px 22px -18px rgb(25 17 16 / 0.5);
+		box-shadow: var(--shadow-soft);
 	}
 
 	.finish-wrap {
@@ -527,7 +531,11 @@
 		border: 1px solid var(--color-rule);
 		border-radius: 14px;
 		background:
-			radial-gradient(ellipse at 90% 12%, rgb(236 207 202 / 0.65), transparent 55%),
+			radial-gradient(
+				ellipse at 90% 12%,
+				color-mix(in srgb, var(--color-blush) 55%, transparent),
+				transparent 55%
+			),
 			var(--color-paper);
 		padding: clamp(1.2rem, 3vw, 2rem);
 		overflow: hidden;

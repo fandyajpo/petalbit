@@ -81,7 +81,7 @@
 	.link {
 		flex: 1;
 		min-width: 0;
-		border: 2px solid rgb(43 31 34 / 0.14);
+		border: 2px solid var(--color-rule);
 		border-radius: 3px;
 		background: var(--color-paper);
 		padding: 0.62rem 0.8rem;

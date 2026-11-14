@@ -302,8 +302,8 @@
 		inset: -10% -20% auto;
 		height: 80%;
 		background:
-			radial-gradient(ellipse 50% 60% at 20% 40%, rgb(236 207 202 / 0.45), transparent 70%),
-			radial-gradient(ellipse 40% 50% at 78% 30%, rgb(223 154 166 / 0.18), transparent 70%);
+			radial-gradient(ellipse 50% 60% at 20% 40%, color-mix(in srgb, var(--color-blush) 45%, transparent), transparent 70%),
+			radial-gradient(ellipse 40% 50% at 78% 30%, color-mix(in srgb, var(--color-rose-light) 22%, transparent), transparent 70%);
 		pointer-events: none;
 		z-index: 0;
 	}
@@ -328,11 +328,9 @@
 		align-items: center;
 		gap: 0.45rem;
 		border-radius: 999px;
-		background: rgb(255 253 247 / 0.95);
-		border: 1px solid rgb(25 17 16 / 0.1);
-		box-shadow:
-			0 10px 22px -16px rgb(25 17 16 / 0.7),
-			inset 0 0 0 2px rgb(255 255 255 / 0.9);
+		background: color-mix(in srgb, var(--color-paper) 95%, transparent);
+		border: 1px solid var(--color-rule-soft);
+		box-shadow: 0 10px 22px -16px color-mix(in srgb, var(--color-ink) 60%, transparent);
 		padding: 0.38rem 0.72rem 0.34rem;
 		font-family: var(--font-mono);
 		font-size: 0.58rem;
@@ -385,10 +383,10 @@
 		border-radius: 999px;
 		background: linear-gradient(
 			90deg,
-			rgb(236 207 202 / 0.2),
-			rgb(223 154 166 / 0.85) 12%,
-			rgb(236 207 202 / 0.8) 88%,
-			rgb(236 207 202 / 0.15)
+			color-mix(in srgb, var(--color-blush) 20%, transparent),
+			color-mix(in srgb, var(--color-rose-light) 85%, transparent) 12%,
+			color-mix(in srgb, var(--color-blush) 80%, transparent) 88%,
+			color-mix(in srgb, var(--color-blush) 15%, transparent)
 		);
 		transform: rotate(-0.8deg);
 	}
@@ -460,7 +458,7 @@
 		padding: 0.34rem 0.66rem 0.32rem;
 		border: 1px solid var(--color-rule-soft);
 		border-radius: 999px;
-		background: rgb(251 246 236 / 0.72);
+		background: color-mix(in srgb, var(--color-paper) 72%, transparent);
 		font-family: var(--font-mono);
 		font-size: 0.57rem;
 		letter-spacing: 0.11em;
@@ -484,8 +482,8 @@
 		padding: clamp(0.8rem, 2vw, 1.2rem);
 		border: 1px solid var(--color-rule-soft);
 		border-radius: calc(var(--radius) * 1.4);
-		background: rgb(251 246 236 / 0.55);
-		box-shadow: 0 24px 48px -36px rgb(25 17 16 / 0.45);
+		background: color-mix(in srgb, var(--color-paper) 65%, transparent);
+		box-shadow: var(--shadow-soft);
 	}
 
 	.art-note {
@@ -559,7 +557,7 @@
 	}
 
 	.step-row:hover {
-		background: rgb(251 246 236 / 0.7);
+		background: color-mix(in srgb, var(--color-paper) 70%, transparent);
 	}
 
 	.step-n {
@@ -614,8 +612,8 @@
 	.notice {
 		display: grid;
 		gap: 1.6rem;
-		background: var(--color-ink);
-		color: var(--color-paper);
+		background: var(--color-inverse-surface);
+		color: var(--color-inverse-ink);
 		border-radius: var(--radius);
 		padding: clamp(1.6rem, 4vw, 3rem);
 		position: relative;
@@ -626,7 +624,10 @@
 		content: '';
 		position: absolute;
 		inset: 0;
-		background-image: radial-gradient(rgb(251 246 236 / 0.09) 0.7px, transparent 0.8px);
+		background-image: radial-gradient(
+			color-mix(in srgb, var(--color-inverse-ink) 10%, transparent) 0.7px,
+			transparent 0.8px
+		);
 		background-size: 3px 3px;
 		pointer-events: none;
 	}
@@ -648,12 +649,12 @@
 	}
 
 	.notice-figure .mono {
-		color: rgb(251 246 236 / 0.55);
+		color: color-mix(in srgb, var(--color-inverse-ink) 66%, transparent);
 	}
 
 	.notice-copy h2 {
 		margin: 0.7rem 0 0.8rem;
-		color: var(--color-paper);
+		color: var(--color-inverse-ink);
 		font-size: clamp(1.7rem, 3.4vw, 2.5rem);
 	}
 
@@ -661,14 +662,14 @@
 		max-width: 48ch;
 		font-size: 0.94rem;
 		line-height: 1.75;
-		color: rgb(251 246 236 / 0.72);
+		color: color-mix(in srgb, var(--color-inverse-ink) 78%, transparent);
 	}
 
 	.notice-small {
 		margin-top: 0.9rem;
 		font-family: var(--font-display);
 		font-style: italic;
-		color: rgb(251 246 236 / 0.55) !important;
+		color: color-mix(in srgb, var(--color-inverse-ink) 68%, transparent) !important;
 	}
 
 	.notice .eyebrow {
@@ -726,8 +727,8 @@
 	}
 
 	.flower-card:hover {
-		border-color: rgb(25 17 16 / 0.42);
-		box-shadow: 0 20px 34px -30px rgb(25 17 16 / 0.8);
+		border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+		box-shadow: var(--shadow-soft);
 	}
 
 	.card-index {

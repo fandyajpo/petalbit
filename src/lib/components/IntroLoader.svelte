@@ -96,8 +96,13 @@
 		place-content: center;
 		justify-items: center;
 		gap: 0;
-		background:
-			radial-gradient(circle at 50% 38%, #fbf6ec 0%, #f1e8da 55%, #e5d6c2 100%);
+		background: var(--color-bone);
+		background-image: radial-gradient(
+			circle at 50% 38%,
+			var(--color-paper) 0%,
+			var(--color-bone) 55%,
+			var(--color-cream-deep) 100%
+		);
 		transition:
 			opacity 420ms ease,
 			visibility 420ms ease;
