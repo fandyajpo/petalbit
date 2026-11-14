@@ -18,7 +18,8 @@ export type RateLimitResult =
 export const RATE_LIMITS = {
 	create: { limit: 10, windowMs: 10 * 60_000 },
 	read: { limit: 120, windowMs: 60_000 },
-	shareImage: { limit: 60, windowMs: 60_000 }
+	shareImage: { limit: 60, windowMs: 60_000 },
+	card: { limit: 30, windowMs: 60_000 }
 } as const;
 
 function prune(now: number) {

@@ -179,7 +179,7 @@
 					url={data.url}
 					text={`${bouquet.sender} sent a pixel bouquet to ${bouquet.recipient}.`}
 				/>
-				<a class="save-card" href={data.ogImage} download={cardFileName}>
+				<a class="save-card" href={data.cardImage} download={cardFileName}>
 					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 						<path d="M12 3v11M8 10l4 4 4-4M4 18v2h16v-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>

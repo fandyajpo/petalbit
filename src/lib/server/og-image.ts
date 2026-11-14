@@ -280,7 +280,39 @@ function paintBackground(out: Buffer, kind: string) {
 	}
 }
 
-function paintCard(out: Buffer, bouquet: Bouquet, stems: number) {
+function wrapText(raw: string, maxChars: number, maxLines: number): string[] {
+	const words = raw
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toUpperCase()
+		.split(' ')
+		.filter(Boolean);
+	const lines: string[] = [];
+	let current = '';
+
+	for (const word of words) {
+		const next = current ? `${current} ${word}` : word;
+		if (next.length <= maxChars) {
+			current = next;
+			continue;
+		}
+		if (current) lines.push(current);
+		current = word.length > maxChars ? word.slice(0, maxChars) : word;
+		if (lines.length === maxLines) break;
+	}
+
+	if (current && lines.length < maxLines) lines.push(current);
+
+	const used = lines.join(' ').length;
+	if (used < words.join(' ').length && lines.length > 0) {
+		const last = lines[Math.min(lines.length, maxLines) - 1];
+		lines[Math.min(lines.length, maxLines) - 1] = `${last.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
+	}
+
+	return lines.slice(0, maxLines);
+}
+
+function paintCard(out: Buffer, bouquet: Bouquet, stems: number, includeMessage: boolean) {
 	const left = 686;
 	const right = 1128;
 	const top = 132;
@@ -296,26 +328,38 @@ function paintCard(out: Buffer, bouquet: Bouquet, stems: number) {
 	const cx = (left + right) / 2;
 	fillRect(out, left + 34, top + 34, right - 34, top + 35, INK, 40);
 
-	drawText(out, 'PETALBIT', cx, top + 52, 3, INK);
-	fillRect(out, left + 34, top + 90, right - 34, top + 91, INK, 40);
+	drawText(out, 'PETALBIT', cx, top + (includeMessage ? 42 : 52), 3, INK);
+	fillRect(out, left + 34, top + (includeMessage ? 74 : 90), right - 34, top + (includeMessage ? 75 : 91), INK, 40);
 
-	drawText(out, 'FOR', cx, top + 118, 2, MUTED);
+	drawText(out, 'FOR', cx, top + (includeMessage ? 92 : 118), 2, MUTED);
 
 	const name = (bouquet.recipient || 'YOU').toUpperCase();
-	const nameScale = fitScale(name, right - left - 70, 8);
-	drawText(out, name, cx, top + 150, nameScale, ROSE, 255);
+	const nameScale = fitScale(name, right - left - 70, includeMessage ? 7 : 8);
+	const nameY = top + (includeMessage ? 116 : 150);
+	drawText(out, name, cx, nameY, nameScale, ROSE, 255);
 
-	const ruleY = top + 150 + nameScale * 7 + 26;
+	const ruleY = nameY + nameScale * 7 + (includeMessage ? 14 : 26);
 	fillRect(out, cx - 26, ruleY, cx + 26, ruleY + 2, INK, 90);
 
 	const sender = `FROM ${(bouquet.sender || 'A FRIEND').toUpperCase()}`;
 	const senderScale = fitScale(sender, right - left - 56, 2);
-	drawText(out, sender, cx, ruleY + 26, senderScale, MUTED);
+	drawText(out, sender, cx, ruleY + (includeMessage ? 14 : 26), senderScale, MUTED);
 
-	drawText(out, `${stems} STEMS`, cx, bottom - 52, 2, MUTED);
+	if (includeMessage) {
+		const lines = wrapText(bouquet.message, 30, 5);
+		lines.forEach((line, index) => {
+			drawText(out, line, cx, ruleY + 54 + index * 21, 2, INK, 255);
+		});
+	} else {
+		drawText(out, `${stems} STEMS`, cx, bottom - 52, 2, MUTED);
+	}
 }
 
-export async function renderBouquetOg(bouquet: Bouquet, origin: string): Promise<Buffer> {
+export async function renderBouquetOg(
+	bouquet: Bouquet,
+	origin: string,
+	options: { includeMessage?: boolean } = {}
+): Promise<Buffer> {
 	const out = createCanvas();
 	const kind = getBouquetBackground(bouquet.background).kind;
 	paintBackground(out, kind);
@@ -370,7 +414,7 @@ export async function renderBouquetOg(bouquet: Bouquet, origin: string): Promise
 		/* logo is decorative */
 	}
 
-	paintCard(out, bouquet, Math.max(1, n));
+	paintCard(out, bouquet, Math.max(1, n), options.includeMessage === true);
 
 	const png = new PNG({ width: W, height: H });
 	png.data = out;
