@@ -18,6 +18,8 @@
 		<nav class="links" aria-label="Footer navigation">
 			<h2 class="mono col-title">Explore</h2>
 			<a href="/create">Make a bouquet</a>
+			<a href="/blog">The journal</a>
+			<a href="/blog/rss.xml">Journal RSS</a>
 			<a href="/#cara-kerja">How it works</a>
 			<a href="/#bunga">Flower lineup</a>
 			<a href="/#dukung">Support Petalbit</a>

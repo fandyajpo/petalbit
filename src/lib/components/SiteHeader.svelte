@@ -7,6 +7,7 @@
 
 	const links = [
 		{ href: '/#cara-kerja', label: 'How it works' },
+		{ href: '/blog', label: 'Journal' },
 		{ href: '/tutorial', label: 'Tutorial' },
 		{ href: '/#bunga', label: 'The lineup' },
 		{ href: '/#dukung', label: 'Support' }
@@ -274,7 +275,7 @@
 	}
 
 	.panel.shown {
-		max-height: 22rem;
+		max-height: 27rem;
 		opacity: 1;
 		padding-block: 1rem 1.4rem;
 		border-top-color: var(--color-rule-soft);

@@ -13,6 +13,7 @@
 	let { children } = $props();
 
 	const isBouquetPage = $derived(page.url.pathname.startsWith('/b/'));
+	const isJournalPage = $derived(page.url.pathname.startsWith('/blog'));
 
 	type ViewTransitionDocument = Document & {
 		startViewTransition?: (callback: () => Promise<void> | void) => { finished: Promise<void> };
@@ -81,7 +82,9 @@
 
 	{#if !isBouquetPage}
 		<RoundLines />
-		<PixelButterfly />
+		{#if !isJournalPage}
+			<PixelButterfly />
+		{/if}
 		<SiteHeader />
 	{/if}
 	<main id="top">
