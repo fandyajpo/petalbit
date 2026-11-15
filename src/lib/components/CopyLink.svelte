@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { playSound } from '$lib/sound';
+
 	type Props = { value: string; label?: string; compact?: boolean };
 	let { value, label = 'Tautan buket', compact = false }: Props = $props();
 
@@ -23,9 +25,11 @@
 			}
 			copied = true;
 			failed = false;
+			playSound('success');
 		} catch {
 			failed = true;
 			copied = false;
+			playSound('error');
 		}
 
 		clearTimeout(timer);

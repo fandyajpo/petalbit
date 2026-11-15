@@ -20,6 +20,7 @@
 	type="button"
 	class="sound-toggle"
 	class:on
+	data-sound="none"
 	aria-pressed={on}
 	aria-label={on ? 'Turn sound off' : 'Turn sound on'}
 	title={on ? 'Sound on' : 'Sound off'}

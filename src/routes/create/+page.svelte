@@ -129,6 +129,7 @@
 				...errors,
 				flowers: `${flower.name} is maxed at ${flower.maxPerBouquet}. Remove one to add another.`
 			};
+			playSound('error');
 			if (btn) mShake(btn);
 			return;
 		}
@@ -137,6 +138,7 @@
 				...errors,
 				flowers: `Max ${MAX_BOUQUET_FLOWERS} stems per bouquet. Remove one first to swap.`
 			};
+			playSound('error');
 			if (btn) mShake(btn);
 			return;
 		}
@@ -149,6 +151,7 @@
 	function applyStarter(flowers: string[]) {
 		stems = flowers.slice(0, MAX_BOUQUET_FLOWERS).map((flower) => makeStem(flower));
 		clearError('flowers');
+		playSound('select');
 	}
 
 	/** Roll a full bouquet — flowers, wrap and mood — then jump to the note. */
@@ -171,6 +174,7 @@
 		paper = BOUQUET_PAPERS[Math.floor(Math.random() * BOUQUET_PAPERS.length)].id;
 		background = BOUQUET_BACKGROUNDS[Math.floor(Math.random() * BOUQUET_BACKGROUNDS.length)].id;
 		clearError('flowers');
+		playSound('sparkle');
 		dir = 1;
 		step = 2;
 		scrollToStudio();
@@ -179,6 +183,7 @@
 	function removeStem(index: number) {
 		stems = stems.filter((_, i) => i !== index);
 		clearError('flowers');
+		playSound('remove');
 	}
 
 	/** Remove the most recently added stem of this flower, straight from its tile. */
@@ -195,6 +200,7 @@
 	function validateStepOne(): boolean {
 		if (selected.length === 0) {
 			errors = { ...errors, flowers: 'Pick at least one flower for your bouquet.' };
+			playSound('error');
 			return false;
 		}
 		clearError('flowers');
@@ -216,6 +222,7 @@
 			if (check.errors[key]) keep[key] = check.errors[key];
 		}
 		errors = keep;
+		if (Object.keys(keep).length > 0) playSound('error');
 		return Object.keys(keep).length === 0;
 	}
 
@@ -270,6 +277,7 @@
 			layers
 		});
 		if (!check.success) {
+			playSound('error');
 			errors = check.errors;
 			if (check.errors.flowers) {
 				dir = -1;
@@ -294,6 +302,7 @@
 			const data = await response.json().catch(() => null);
 
 			if (!response.ok || !data?.id) {
+				playSound('error');
 				if (data?.errors) errors = data.errors;
 				serverError = data?.message ?? 'Could not make your bouquet rn. Try again in a sec.';
 				if (data?.errors?.flowers) {
@@ -314,6 +323,7 @@
 			window.dispatchEvent(new CustomEvent('petalbit:celebrate'));
 			window.scrollTo({ top: 0, behavior: 'smooth' });
 		} catch {
+			playSound('error');
 			serverError = 'Connection dropped. Check your internet and try again.';
 		} finally {
 			submitting = false;
@@ -332,6 +342,7 @@
 		message = '';
 		errors = {};
 		serverError = '';
+		playSound('paper');
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 

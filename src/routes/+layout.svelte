@@ -9,6 +9,7 @@
 	import IntroLoader from '$lib/components/IntroLoader.svelte';
 	import PetalFX from '$lib/components/PetalFX.svelte';
 	import TimeThemeProvider from '$lib/theme/TimeThemeProvider.svelte';
+	import Soundscape from '$lib/components/Soundscape.svelte';
 
 	let { children } = $props();
 
@@ -77,6 +78,7 @@
 </script>
 
 <TimeThemeProvider>
+	<Soundscape />
 	<IntroLoader />
 	<PetalFX />
 
