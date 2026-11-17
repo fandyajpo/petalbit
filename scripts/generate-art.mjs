@@ -459,6 +459,36 @@ const P = {
 	ribbonCrease: ramp(350, 0.4, 0.18, 0.48, 6),
 };
 
+/** Alternate wrap colours, rendered from the same sheet geometry as the classic paper. */
+const PAPER_VARIANTS = {
+	yellow: {
+		palette: ramp(43, 0.78, 0.4, 0.95, 12, { hueShift: 6 }),
+		crease: ramp(40, 0.62, 0.3, 0.6, 7, { hueShift: 5 })
+	},
+	blue: {
+		palette: ramp(214, 0.5, 0.42, 0.94, 12, { hueShift: 6 }),
+		crease: ramp(216, 0.44, 0.28, 0.58, 7, { hueShift: 5 })
+	},
+	'red-polka-dot': {
+		palette: ramp(38, 0.16, 0.66, 0.98, 12, { hueShift: 6 }),
+		crease: ramp(34, 0.16, 0.52, 0.76, 7, { hueShift: 4 }),
+		dots: {
+			spacing: 27,
+			radius: 6.4,
+			seed: 970,
+			ramp: ramp(356, 0.82, 0.3, 0.74, 8, { hueShift: 5 })
+		}
+	},
+	black: {
+		palette: ramp(232, 0.1, 0.08, 0.27, 12, { hueShift: 4 }),
+		crease: ramp(230, 0.08, 0.22, 0.44, 7, { hueShift: 3 }),
+		/* charcoal paper wants a cool sheen at the fold, not a cream one */
+		rim: [122, 130, 146],
+		under: [8, 8, 11],
+		shadow: [3, 3, 5]
+	}
+};
+
 /* ---------------------------------------------------------------- flowers */
 
 const W = 150;
@@ -1817,7 +1847,38 @@ function clipToPolygon(img, points) {
 	}
 }
 
-function drawBouquetPaper() {
+function stampDots(img, dot) {
+	const { spacing = 27, radius = 6.4, seed = 970, ramp: dotRamp } = dot;
+	const s = img.s;
+	const stepY = spacing * 0.92;
+
+	for (let r = 0, cy = 2; cy < img.h / s + spacing; r++, cy += stepY) {
+		const off = r % 2 ? spacing / 2 : 0;
+		for (let c = 0, bx = 2; bx < img.w / s + spacing; c++, bx += spacing) {
+			const cx = bx + off + (hash(c, r, seed) - 0.5) * 1.4;
+			const rr = radius * (0.84 + hash(c, r, seed + 3) * 0.26);
+			const px0 = Math.max(0, Math.floor((cx - rr) * s));
+			const px1 = Math.min(img.w - 1, Math.ceil((cx + rr) * s));
+			const py0 = Math.max(0, Math.floor((cy - rr) * s));
+			const py1 = Math.min(img.h - 1, Math.ceil((cy + rr) * s));
+			for (let py = py0; py <= py1; py++) {
+				for (let px = px0; px <= px1; px++) {
+					const i = py * img.w + px;
+					if (img.a[i] < 0.55) continue;
+					const dx = (px + 0.5) / s - cx;
+					const dy = (py + 0.5) / s - cy;
+					const cover = clamp01((rr - Math.hypot(dx, dy)) / 1.2);
+					if (cover <= 0) continue;
+					const lit = clamp01(0.5 - (dx + dy) / (rr * 2));
+					img.blend(px, py, sampleRamp(dotRamp, 0.45 + 0.55 * lit, px, py, 0.7, seed + c * 7 + r), 0.94 * cover);
+				}
+			}
+		}
+	}
+}
+
+function drawBouquetPaper(palette = P.paper, opts = {}) {
+	const { crease = P.paperCrease, tieShadow = mix(P.paper[1], [96, 74, 62], 0.55), dots = null } = opts;
 	const w = 460;
 	const h = 330;
 	const PS = 3; // same pixel density as the flower sprites
@@ -1867,7 +1928,7 @@ function drawBouquetPaper() {
 
 		const depth = 0.6 - edge * 0.1 + (jitter - 0.5) * 0.05;
 		poly(img, pts, {
-			ramp: P.paper,
+			ramp: palette,
 			seed,
 			/* Light from the upper left, warm where the sheets overlap. */
 			shadeFn: (x, y) => {
@@ -1892,7 +1953,7 @@ function drawBouquetPaper() {
 				{
 					width: 2.2,
 					widthEnd: 1,
-					ramp: P.paperCrease,
+					ramp: crease,
 					alpha: 0.085,
 					dither: 0.5,
 					shade: 1,
@@ -1906,6 +1967,9 @@ function drawBouquetPaper() {
 	   silhouette instead of a row of stepped sheet tips. */
 	clipToPolygon(img, paperEnvelope(tieX, tieY));
 
+	/* Pattern sits inside the silhouette only, so dots stop at the paper edge. */
+	if (dots) stampDots(img, dots);
+
 	/* Bunched paper around the tie: a soft shadow that rounds the bottom. */
 	for (let y = Math.floor((tieY - 110) * PS); y < img.h; y++) {
 		for (let x = 0; x < img.w; x++) {
@@ -1916,7 +1980,7 @@ function drawBouquetPaper() {
 			const near = Math.hypot(ax - tieX, (ay - tieY) * 1.9) / 74;
 			if (near > 1) continue;
 			const alpha = Math.pow(1 - near, 2) * 0.3;
-			img.blend(x, y, mix(P.paper[1], [96, 74, 62], 0.55), alpha);
+			img.blend(x, y, tieShadow, alpha);
 		}
 	}
 
@@ -1927,7 +1991,7 @@ function drawBouquetPaper() {
  * Front face of the wrap: the same paper, trimmed along a soft concave fold so
  * it can sit in front of the stems (paper wraps the bunch, it isn't behind it).
  */
-function drawBouquetPaperFront(back, tieX) {
+function drawBouquetPaperFront(back, tieX, palette = P.paper, opts = {}) {
 	const img = new Img(back.w, back.h, back.s);
 	img.rgb.set(back.rgb);
 	img.a.set(back.a);
@@ -1937,8 +2001,8 @@ function drawBouquetPaperFront(back, tieX) {
 		const u = (ax - tieX) / 158;
 		return 246 - 64 * Math.pow(Math.abs(u), 1.25) + Math.sin(ax * 0.06 + 1.3) * 2.4;
 	};
-	const rim = mix(P.paper[10], [255, 252, 245], 0.5);
-	const under = mix(P.paper[3], [92, 72, 58], 0.35);
+	const rim = opts.rim ?? mix(palette[10], [255, 252, 245], 0.5);
+	const under = opts.under ?? mix(palette[3], [92, 72, 58], 0.35);
 
 	for (let y = 0; y < img.h; y++) {
 		for (let x = 0; x < img.w; x++) {
@@ -1955,7 +2019,7 @@ function drawBouquetPaperFront(back, tieX) {
 			/* lit fold edge, soft shadow under it, then the shaded front face */
 			if (d < 2.4) img.blend(x, y, rim, 0.45 * (1 - d / 2.4));
 			else if (d < 14) img.blend(x, y, under, 0.17 * (1 - (d - 2.4) / 11.6));
-			img.blend(x, y, P.paper[5], 0.05);
+			img.blend(x, y, palette[5], 0.05);
 		}
 	}
 
@@ -2323,6 +2387,15 @@ const ribbonSheet = drawBouquetRibbon();
 save('static/art/bouquet-paper.png', paperSheet);
 save('static/art/bouquet-paper-front.png', paperFront);
 save('static/art/bouquet-ribbon.png', ribbonSheet);
+
+for (const [id, variant] of Object.entries(PAPER_VARIANTS)) {
+	/* Shadows take the wrap's own hue, so blue paper never gets a brown smudge. */
+	const tieShadow = variant.shadow ?? mix(variant.palette[1], [30, 24, 20], 0.5);
+	const back = drawBouquetPaper(variant.palette, { ...variant, tieShadow });
+	const front = drawBouquetPaperFront(back, 460 / 2, variant.palette, variant);
+	save(`static/art/bouquet-paper-${id}.png`, back);
+	save(`static/art/bouquet-paper-front-${id}.png`, front);
+}
 save('static/art/logo-mark.png', drawLogoMark());
 save('static/favicon.png', drawFavicon());
 
