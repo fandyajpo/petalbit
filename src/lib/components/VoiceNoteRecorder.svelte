@@ -190,7 +190,7 @@
 	<div class="voice-head">
 		<span class="voice-title">Voice note</span>
 		<span class="voice-optional">optional</span>
-		<span class="voice-limit">10s · mp3 128 kbps</span>
+		
 	</div>
 
 	{#if view === 'unavailable'}
@@ -293,15 +293,6 @@
 		background: var(--color-blush-soft);
 		border-radius: 999px;
 		padding: 0.12rem 0.4rem;
-	}
-
-	.voice-limit {
-		margin-left: auto;
-		font-family: var(--font-mono);
-		font-size: 0.54rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-ink-faint);
 	}
 
 	.voice-idle {
