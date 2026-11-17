@@ -4,6 +4,10 @@ export type BouquetPaper = {
 	description: string;
 	paperImage: string;
 	frontImage: string;
+	/** Small picker image. Falls back to paperImage when absent. */
+	swatchImage?: string;
+	/** Ribbon artwork; falls back to the blush ribbon when absent. */
+	ribbonImage?: string;
 	ribbon?: boolean;
 	/** Visual treatment for wrap layers (layout/design). */
 	layout?: {
@@ -30,6 +34,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'The OG wrap. Clean, centered, timeless.',
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
+		swatchImage: '/art/thumbs/bouquet-paper.png',
 		ribbon: true,
 		// Soft cream — the original wrap colour.
 		layout: { filter: 'sepia(0.18) saturate(1.02) brightness(1.02)' }
@@ -40,6 +45,8 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Neat front fold with a cozy tucked look.',
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
+		swatchImage: '/art/thumbs/bouquet-paper.png',
+		ribbonImage: '/art/bouquet-ribbon-gold.png',
 		ribbon: true,
 		layout: {
 			paperScale: 1.02,
@@ -58,6 +65,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Opened up wide so the blooms go full spread.',
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
+		swatchImage: '/art/thumbs/bouquet-paper.png',
 		ribbon: false,
 		layout: {
 			paperScale: 1.14,
@@ -74,6 +82,8 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'A taller, snug wrap for a sleek silhouette.',
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
+		swatchImage: '/art/thumbs/bouquet-paper.png',
+		ribbonImage: '/art/bouquet-ribbon-sage.png',
 		ribbon: true,
 		layout: {
 			paperScale: 0.94,
@@ -91,6 +101,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Low, open wrap so the flowers steal the show.',
 		paperImage: '/art/bouquet-paper.png',
 		frontImage: '/art/bouquet-paper-front.png',
+		swatchImage: '/art/thumbs/bouquet-paper.png',
 		ribbon: false,
 		layout: {
 			paperScale: 1.08,
@@ -107,6 +118,8 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Warm butter-yellow wrap, like morning sun on paper.',
 		paperImage: '/art/bouquet-paper-yellow.png',
 		frontImage: '/art/bouquet-paper-front-yellow.png',
+		swatchImage: '/art/thumbs/bouquet-paper-yellow.png',
+		ribbonImage: '/art/bouquet-ribbon-gold.png',
 		ribbon: true
 	},
 	{
@@ -115,6 +128,8 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Soft sky-blue wrap for a calmer bouquet.',
 		paperImage: '/art/bouquet-paper-blue.png',
 		frontImage: '/art/bouquet-paper-front-blue.png',
+		swatchImage: '/art/thumbs/bouquet-paper-blue.png',
+		ribbonImage: '/art/bouquet-ribbon-cream.png',
 		ribbon: true
 	},
 	{
@@ -123,6 +138,7 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Red dots on cream — playful, a little bit retro.',
 		paperImage: '/art/bouquet-paper-red-polka-dot.png',
 		frontImage: '/art/bouquet-paper-front-red-polka-dot.png',
+		swatchImage: '/art/thumbs/bouquet-paper-red-polka-dot.png',
 		ribbon: false
 	},
 	{
@@ -131,6 +147,48 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 		description: 'Moody charcoal wrap, like ink on vellum.',
 		paperImage: '/art/bouquet-paper-black.png',
 		frontImage: '/art/bouquet-paper-front-black.png',
+		swatchImage: '/art/thumbs/bouquet-paper-black.png',
+		ribbonImage: '/art/bouquet-ribbon-gold.png',
+		ribbon: true
+	},
+	{
+		id: 'kraft',
+		name: 'Kraft Paper',
+		description: 'Rough recycled brown paper, tied by hand.',
+		paperImage: '/art/bouquet-paper-kraft.png',
+		frontImage: '/art/bouquet-paper-front-kraft.png',
+		swatchImage: '/art/thumbs/bouquet-paper-kraft.png',
+		ribbonImage: '/art/bouquet-ribbon-cream.png',
+		ribbon: true
+	},
+	{
+		id: 'pearl',
+		name: 'Pearl Paper',
+		description: 'Pale pearl paper with a soft, glossy sheen.',
+		paperImage: '/art/bouquet-paper-pearl.png',
+		frontImage: '/art/bouquet-paper-front-pearl.png',
+		swatchImage: '/art/thumbs/bouquet-paper-pearl.png',
+		ribbonImage: '/art/bouquet-ribbon-gold.png',
+		ribbon: true
+	},
+	{
+		id: 'striped',
+		name: 'Striped Paper',
+		description: 'Sage stripes on cream, wrapped neat as a ribbon box.',
+		paperImage: '/art/bouquet-paper-striped.png',
+		frontImage: '/art/bouquet-paper-front-striped.png',
+		swatchImage: '/art/thumbs/bouquet-paper-striped.png',
+		ribbonImage: '/art/bouquet-ribbon-sage.png',
+		ribbon: true
+	},
+	{
+		id: 'gingham',
+		name: 'Gingham Paper',
+		description: 'Picnic gingham in soft rose on cream.',
+		paperImage: '/art/bouquet-paper-gingham.png',
+		frontImage: '/art/bouquet-paper-front-gingham.png',
+		swatchImage: '/art/thumbs/bouquet-paper-gingham.png',
+		ribbonImage: '/art/bouquet-ribbon-cream.png',
 		ribbon: true
 	}
 ];

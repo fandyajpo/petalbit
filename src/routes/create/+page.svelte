@@ -599,7 +599,15 @@
 											use:mPress={{ hoverScale: 1, pressScale: 0.985, lift: 0 }}
 										>
 											<span class="paper-swatch" aria-hidden="true">
-												<img src={option.paperImage} alt="" style={paperSwatchStyle(option)} />
+												<img
+													src={option.swatchImage ?? option.paperImage}
+													alt=""
+													width="360"
+													height="258"
+													loading="lazy"
+													decoding="async"
+													style={paperSwatchStyle(option)}
+												/>
 											</span>
 											<span class="paper-meta">
 												<span class="paper-name">{option.name}</span>
@@ -1702,6 +1710,7 @@
 
 	.paper-swatch img {
 		width: 120%;
+		height: auto;
 		max-width: none;
 		transform: translateY(8%);
 		display: block;

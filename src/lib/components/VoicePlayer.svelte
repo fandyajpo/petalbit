@@ -30,6 +30,8 @@
 	let dragging = false;
 	let seeking = false;
 
+	const VOLUME_KEY = 'petalbit:voice-volume';
+
 	$effect(() => {
 		if (duration > 0 && total === 0) total = duration;
 	});
@@ -169,16 +171,40 @@
 		}
 	}
 
+	function readVolumePreference() {
+		try {
+			const raw = localStorage.getItem(VOLUME_KEY);
+			if (!raw) return;
+			const saved = JSON.parse(raw) as { volume?: unknown; muted?: unknown };
+			if (typeof saved.volume === 'number' && Number.isFinite(saved.volume)) {
+				volume = Math.min(1, Math.max(0, saved.volume));
+			}
+			if (typeof saved.muted === 'boolean') muted = saved.muted;
+		} catch {
+			/* ignore a blocked or corrupt preference */
+		}
+	}
+
+	function saveVolumePreference() {
+		try {
+			localStorage.setItem(VOLUME_KEY, JSON.stringify({ volume, muted }));
+		} catch {
+			/* storage can be blocked in private modes */
+		}
+	}
+
 	function onVolumeInput(e: Event) {
 		const v = Number((e.target as HTMLInputElement).value);
 		volume = v;
 		if (audio) audio.volume = muted ? 0 : v;
 		if (v > 0) muted = false;
+		saveVolumePreference();
 	}
 
 	function toggleMute() {
 		muted = !muted;
 		if (audio) audio.volume = muted ? 0 : volume;
+		saveVolumePreference();
 	}
 
 	$effect(() => {
@@ -188,20 +214,35 @@
 	async function download() {
 		if (downloading) return;
 		downloading = true;
+		const a = document.createElement('a');
 		try {
+			// In-app browsers (and older iOS Safari) ignore the download attribute,
+			// so hand the file to the browser instead of failing silently.
+			if (typeof a.download === 'undefined') {
+				window.open(src, '_blank', 'noopener');
+				playSound('success');
+				return;
+			}
 			const res = await fetch(src);
+			if (!res.ok) throw new Error(`voice download failed: ${res.status}`);
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
 			a.href = url;
 			a.download = downloadName;
+			a.rel = 'noopener';
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
-			URL.revokeObjectURL(url);
+			// Safari needs the object URL to outlive the click.
+			setTimeout(() => URL.revokeObjectURL(url), 1000);
 			playSound('success');
 		} catch {
-			playSound('error');
+			try {
+				window.open(src, '_blank', 'noopener');
+				playSound('success');
+			} catch {
+				playSound('error');
+			}
 		} finally {
 			downloading = false;
 		}
@@ -211,24 +252,28 @@
 		if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
 		try {
 			navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
-			navigator.mediaSession.setPositionState?.({
-				duration: total || 0,
-				playbackRate: 1,
-				position: current || 0
-			});
+			// Setting a zero duration throws, and there is nothing to show yet.
+			if (total > 0) {
+				navigator.mediaSession.setPositionState?.({
+					duration: total,
+					playbackRate: audio?.playbackRate ?? 1,
+					position: Math.min(total, Math.max(0, current))
+				});
+			}
 		} catch {
 			/* ignore */
 		}
 	}
 
 	onMount(() => {
+		readVolumePreference();
 		if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
 			try {
 				navigator.mediaSession.metadata = new MediaMetadata({
 					title: 'Voice note',
 					artist: 'Petalbit',
 					album: 'Bouquet',
-					artwork: peaks && peaks.length ? [] : []
+					artwork: [{ src: '/art/logo-mark.png', sizes: '96x96', type: 'image/png' }]
 				});
 				navigator.mediaSession.setActionHandler('play', () => audio?.play());
 				navigator.mediaSession.setActionHandler('pause', () => audio?.pause());

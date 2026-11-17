@@ -334,7 +334,13 @@
 
 	{#if showRibbon}
 		<div class="layer ribbon" aria-hidden="true" style={ribbonStyle}>
-			<img src="/art/bouquet-ribbon.png" alt="" width="1380" height="990" class="pixelated" />
+			<img
+				src={wrapPaper.ribbonImage ?? '/art/bouquet-ribbon.png'}
+				alt=""
+				width="1380"
+				height="990"
+				class="pixelated"
+			/>
 		</div>
 	{/if}
 

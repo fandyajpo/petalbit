@@ -368,10 +368,12 @@ export async function renderBouquetOg(
 	const bottom = 588;
 
 	const paper = getBouquetPaper(bouquet.paper);
+	/* Sized from the back sheet so the front face and ribbon land on the same box. */
+	let paperWidth = 0;
+	const paperHeight = 360;
 	try {
 		const paperImg = await loadBitmap(origin, paper.paperImage);
-		const paperHeight = 360;
-		const paperWidth = (paperImg.width / paperImg.height) * paperHeight;
+		paperWidth = (paperImg.width / paperImg.height) * paperHeight;
 		drawBitmap(out, paperImg, centerX - paperWidth / 2, bottom - paperHeight, paperWidth, paperHeight);
 	} catch {
 		/* the bouquet still renders without its wrap */
@@ -401,6 +403,25 @@ export async function renderBouquetOg(
 			drawStem(out, img, stem.x, stem.y, stem.height, stem.angle);
 		} catch {
 			/* skip a missing bloom */
+		}
+	}
+
+	// Match the page: the front face of the wrap and its ribbon sit over the stems.
+	if (paperWidth > 0) {
+		try {
+			const frontImg = await loadBitmap(origin, paper.frontImage);
+			drawBitmap(out, frontImg, centerX - paperWidth / 2, bottom - paperHeight, paperWidth, paperHeight);
+		} catch {
+			/* the bouquet still renders without the front fold */
+		}
+
+		if (paper.ribbon !== false) {
+			try {
+				const ribbonImg = await loadBitmap(origin, paper.ribbonImage ?? '/art/bouquet-ribbon.png');
+				drawBitmap(out, ribbonImg, centerX - paperWidth / 2, bottom - paperHeight, paperWidth, paperHeight);
+			} catch {
+				/* ribbon is decorative */
+			}
 		}
 	}
 

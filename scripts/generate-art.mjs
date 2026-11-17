@@ -459,7 +459,11 @@ const P = {
 	ribbonCrease: ramp(350, 0.4, 0.18, 0.48, 6),
 };
 
-/** Alternate wrap colours, rendered from the same sheet geometry as the classic paper. */
+/**
+ * Alternate wraps, rendered from the same sheet geometry as the classic paper.
+ * `finish` and `pattern` are generator parameters: looks compose from a base
+ * palette instead of each one needing its own hand-built asset.
+ */
 const PAPER_VARIANTS = {
 	yellow: {
 		palette: ramp(43, 0.78, 0.4, 0.95, 12, { hueShift: 6 }),
@@ -472,9 +476,10 @@ const PAPER_VARIANTS = {
 	'red-polka-dot': {
 		palette: ramp(38, 0.16, 0.66, 0.98, 12, { hueShift: 6 }),
 		crease: ramp(34, 0.16, 0.52, 0.76, 7, { hueShift: 4 }),
-		dots: {
+		pattern: {
+			type: 'dots',
 			spacing: 27,
-			radius: 6.4,
+			size: 6.4,
 			seed: 970,
 			ramp: ramp(356, 0.82, 0.3, 0.74, 8, { hueShift: 5 })
 		}
@@ -486,6 +491,55 @@ const PAPER_VARIANTS = {
 		rim: [122, 130, 146],
 		under: [8, 8, 11],
 		shadow: [3, 3, 5]
+	},
+	kraft: {
+		palette: ramp(30, 0.3, 0.4, 0.78, 12, { hueShift: 6 }),
+		crease: ramp(28, 0.26, 0.26, 0.52, 7),
+		finish: 'kraft'
+	},
+	pearl: {
+		palette: ramp(346, 0.16, 0.72, 0.99, 12, { hueShift: 5 }),
+		crease: ramp(344, 0.16, 0.56, 0.8, 7),
+		finish: 'pearl'
+	},
+	striped: {
+		palette: ramp(40, 0.14, 0.68, 0.98, 12, { hueShift: 6 }),
+		crease: ramp(36, 0.14, 0.54, 0.78, 7),
+		pattern: {
+			type: 'stripes',
+			spacing: 30,
+			width: 10,
+			angle: -0.6,
+			seed: 981,
+			ramp: ramp(140, 0.26, 0.4, 0.74, 8, { hueShift: 8 })
+		}
+	},
+	gingham: {
+		palette: ramp(40, 0.12, 0.7, 0.99, 12, { hueShift: 6 }),
+		crease: ramp(36, 0.12, 0.56, 0.8, 7),
+		pattern: {
+			type: 'gingham',
+			spacing: 26,
+			width: 11,
+			seed: 985,
+			ramp: ramp(350, 0.5, 0.55, 0.9, 8, { hueShift: 5 })
+		}
+	}
+};
+
+/** Ribbon colours, drawn from the same bow geometry as the blush ribbon. */
+const RIBBON_VARIANTS = {
+	gold: {
+		main: ramp(44, 0.7, 0.3, 0.86, 8, { hueShift: 8 }),
+		crease: ramp(42, 0.58, 0.2, 0.5, 6)
+	},
+	sage: {
+		main: ramp(134, 0.24, 0.32, 0.72, 8, { hueShift: 10 }),
+		crease: ramp(132, 0.22, 0.18, 0.44, 6)
+	},
+	cream: {
+		main: ramp(40, 0.24, 0.6, 0.96, 8, { hueShift: 8 }),
+		crease: ramp(38, 0.2, 0.4, 0.68, 6)
 	}
 };
 
@@ -1878,7 +1932,12 @@ function stampDots(img, dot) {
 }
 
 function drawBouquetPaper(palette = P.paper, opts = {}) {
-	const { crease = P.paperCrease, tieShadow = mix(P.paper[1], [96, 74, 62], 0.55), dots = null } = opts;
+	const {
+		crease = P.paperCrease,
+		tieShadow = mix(P.paper[1], [96, 74, 62], 0.55),
+		finish = null,
+		pattern = opts.pattern ?? opts.dots ?? null
+	} = opts;
 	const w = 460;
 	const h = 330;
 	const PS = 3; // same pixel density as the flower sprites
@@ -1967,8 +2026,9 @@ function drawBouquetPaper(palette = P.paper, opts = {}) {
 	   silhouette instead of a row of stepped sheet tips. */
 	clipToPolygon(img, paperEnvelope(tieX, tieY));
 
-	/* Pattern sits inside the silhouette only, so dots stop at the paper edge. */
-	if (dots) stampDots(img, dots);
+	/* Finish and pattern sit inside the silhouette only, so they stop at the paper edge. */
+	if (finish) applyFinish(img, finish);
+	if (pattern) stampPattern(img, pattern);
 
 	/* Bunched paper around the tie: a soft shadow that rounds the bottom. */
 	for (let y = Math.floor((tieY - 110) * PS); y < img.h; y++) {
@@ -1991,6 +2051,97 @@ function drawBouquetPaper(palette = P.paper, opts = {}) {
  * Front face of the wrap: the same paper, trimmed along a soft concave fold so
  * it can sit in front of the stems (paper wraps the bunch, it isn't behind it).
  */
+/** Paper finish as a post-pass over the wrap, so looks compose with any palette. */
+function applyFinish(img, finish) {
+	if (!finish) return;
+	const s = img.s;
+	for (let y = 0; y < img.h; y++) {
+		for (let x = 0; x < img.w; x++) {
+			const i = y * img.w + x;
+			if (img.a[i] < 0.55) continue;
+			const n = hash(x, y, 1234);
+			if (finish === 'kraft') {
+				/* warm fibre flecks, uneven like recycled brown paper */
+				img.blend(x, y, [152, 118, 80], 0.04 + n * 0.05);
+				if (n > 0.986) img.blend(x, y, [96, 72, 48], 0.32);
+			} else if (finish === 'recycled') {
+				if (n > 0.993) img.blend(x, y, [110, 100, 86], 0.5);
+				else if (n > 0.975) img.blend(x, y, [255, 252, 240], 0.16);
+			} else if (finish === 'gloss') {
+				const ax = x / s;
+				const ay = y / s;
+				const sheen = clamp01(1 - Math.hypot(ax - 150, (ay - 150) * 0.62) / 260);
+				img.blend(x, y, [255, 255, 255], 0.18 * sheen * sheen);
+			} else if (finish === 'pearl') {
+				const ax = x / s;
+				const ay = y / s;
+				const irid = 0.5 + 0.5 * Math.sin((ax + ay) * 0.045 + 1.2);
+				img.blend(x, y, mix([255, 245, 240], [234, 244, 255], irid), 0.07);
+				img.blend(x, y, [255, 255, 255], 0.05);
+			}
+		}
+	}
+}
+
+/** Pattern library: dots, stripes, gingham, hearts and stars inside the wrap. */
+function stampPattern(img, pattern) {
+	const { type = 'dots', spacing = 27, size = 6.4, width = 9, angle = -0.6, seed = 970, ramp: pRamp } = pattern;
+	const s = img.s;
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+
+	for (let y = 0; y < img.h; y++) {
+		for (let x = 0; x < img.w; x++) {
+			const i = y * img.w + x;
+			if (img.a[i] < 0.55) continue;
+			const ax = (x + 0.5) / s;
+			const ay = (y + 0.5) / s;
+			let cover = 0;
+			let tone = 0.68;
+
+			if (type === 'stripes') {
+				const p = ((((ax - 150) * cos + (ay - 160) * sin) % spacing) + spacing) % spacing;
+				const d = Math.abs(p - spacing / 2);
+				cover = clamp01((width / 2 - d) / 1.2);
+				tone = 0.62 + 0.2 * clamp01((spacing / 2 - d) / (spacing / 2));
+			} else if (type === 'gingham') {
+				const px = ((ax % spacing) + spacing) % spacing;
+				const py = ((ay % spacing) + spacing) % spacing;
+				const bx = Math.abs(px - spacing / 2) < width / 2;
+				const by = Math.abs(py - spacing / 2) < width / 2;
+				cover = bx && by ? 0.95 : bx || by ? 0.6 : 0;
+				tone = bx && by ? 0.5 : 0.68;
+			} else {
+				/* motif laid out on a staggered grid */
+				const cellY = Math.floor(ay / spacing);
+				const cellX = Math.floor(ax / spacing);
+				const ox = cellX * spacing + (cellY % 2 ? spacing / 2 : 0);
+				const dx = ax - ox - spacing / 2;
+				const dy = ay - cellY * spacing - spacing / 2;
+				if (type === 'dots') {
+					const r = size * (0.86 + hash(cellX, cellY, seed + 3) * 0.22);
+					cover = clamp01((r - Math.hypot(dx, dy)) / 1.2);
+					tone = 0.45 + 0.55 * clamp01(0.5 - (dx + dy) / (r * 2));
+				} else if (type === 'hearts') {
+					const u = dx / size;
+					const v = -dy / size;
+					const f = Math.pow(u * u + v * v - 1, 3) - u * u * Math.pow(Math.max(0, v), 3);
+					cover = f <= 0 ? 1 : 0;
+					tone = 0.68;
+				} else if (type === 'stars') {
+					const diamond = Math.abs(dx) + Math.abs(dy);
+					const cross = Math.max(Math.abs(dx) * 0.4, Math.abs(dy));
+					cover = diamond < size ? clamp01((size - diamond) / 1.2) : clamp01((size * 0.34 - cross) / 1.2);
+					tone = 0.72;
+				}
+			}
+
+			if (cover <= 0) continue;
+			img.blend(x, y, sampleRamp(pRamp, tone, x, y, 0.6, seed), 0.95 * cover);
+		}
+	}
+}
+
 function drawBouquetPaperFront(back, tieX, palette = P.paper, opts = {}) {
 	const img = new Img(back.w, back.h, back.s);
 	img.rgb.set(back.rgb);
@@ -2026,7 +2177,7 @@ function drawBouquetPaperFront(back, tieX, palette = P.paper, opts = {}) {
 	return img;
 }
 
-function drawBouquetRibbon() {
+function drawBouquetRibbon(rampMain = P.ribbon, rampCrease = P.ribbonCrease) {
 	const w = 460;
 	const h = 330;
 	const PS = 3;
@@ -2052,7 +2203,7 @@ function drawBouquetRibbon() {
 		bandPts.push([tieX + s * halfAt(0), bandTop(s)]);
 	}
 	poly(img, bandPts, {
-		ramp: P.ribbon,
+		ramp: rampMain,
 		shadeFn: (x, y) => 0.5 + 0.32 * (1 - Math.abs(x - tieX) / 54) - (y - bandY) * 0.006,
 		seed: 430
 	});
@@ -2066,7 +2217,7 @@ function drawBouquetRibbon() {
 			ry: 17,
 			rot: side * 0.33,
 			power: 2.1,
-			ramp: P.ribbon,
+			ramp: rampMain,
 			rimPx: 1.4,
 			rimMul: 0.62,
 			insideWarm: 0.12,
@@ -2080,7 +2231,7 @@ function drawBouquetRibbon() {
 				[tieX + side * 30, bandY - 9],
 				[tieX + side * 56, bandY - 2]
 			],
-			{ width: 2.4, widthEnd: 0.8, ramp: P.ribbonCrease, alpha: 0.22, seed: 480 + side }
+			{ width: 2.4, widthEnd: 0.8, ramp: rampCrease, alpha: 0.22, seed: 480 + side }
 		);
 	}
 
@@ -2109,7 +2260,7 @@ function drawBouquetRibbon() {
 			right.push([x + side * wdt * 0.75, y - 1.5]);
 		}
 		poly(img, [...left, ...right.reverse()], {
-			ramp: P.ribbon,
+			ramp: rampMain,
 			shadeFn: (x, y) => 0.42 + 0.26 * (1 - Math.abs(x - tieX) / 62) + (bandY + 60 - y) * 0.0016,
 			seed: 450 + side
 		});
@@ -2121,7 +2272,7 @@ function drawBouquetRibbon() {
 		cy: bandY + 1,
 		rx: 13,
 		ry: 11,
-		ramp: P.ribbon,
+		ramp: rampMain,
 		rimPx: 1.2,
 		rimMul: 0.55,
 		insideWarm: 0.16,
@@ -2381,12 +2532,58 @@ const flowers = [
 console.log('Rendering Petalbit art…');
 for (const [id, img] of flowers) save(`static/art/flowers/${id}.png`, img);
 
+/** Box-filter downscale, used for the small picker swatches. */
+function downscale(src, targetW) {
+	const ratio = targetW / src.w;
+	const outW = Math.max(1, Math.round(src.w * ratio));
+	const outH = Math.max(1, Math.round(src.h * ratio));
+	const out = new Img(outW, outH);
+	const step = 1 / ratio;
+
+	for (let y = 0; y < outH; y++) {
+		const sy0 = Math.floor(y * step);
+		const sy1 = Math.min(src.h, Math.max(sy0 + 1, Math.ceil((y + 1) * step)));
+		for (let x = 0; x < outW; x++) {
+			const sx0 = Math.floor(x * step);
+			const sx1 = Math.min(src.w, Math.max(sx0 + 1, Math.ceil((x + 1) * step)));
+			let r = 0;
+			let g = 0;
+			let b = 0;
+			let a = 0;
+			let n = 0;
+			for (let sy = sy0; sy < sy1; sy++) {
+				for (let sx = sx0; sx < sx1; sx++) {
+					const i = sy * src.w + sx;
+					const alpha = src.a[i];
+					r += src.rgb[i * 3] * alpha;
+					g += src.rgb[i * 3 + 1] * alpha;
+					b += src.rgb[i * 3 + 2] * alpha;
+					a += alpha;
+					n++;
+				}
+			}
+			if (!n || a <= 0) continue;
+			const o = y * outW + x;
+			out.rgb[o * 3] = r / a;
+			out.rgb[o * 3 + 1] = g / a;
+			out.rgb[o * 3 + 2] = b / a;
+			out.a[o] = a / n;
+		}
+	}
+	return out;
+}
+
 const paperSheet = drawBouquetPaper();
 const paperFront = drawBouquetPaperFront(paperSheet, 460 / 2);
 const ribbonSheet = drawBouquetRibbon();
 save('static/art/bouquet-paper.png', paperSheet);
 save('static/art/bouquet-paper-front.png', paperFront);
 save('static/art/bouquet-ribbon.png', ribbonSheet);
+save('static/art/thumbs/bouquet-paper.png', downscale(paperSheet, 360));
+
+for (const [id, ribbon] of Object.entries(RIBBON_VARIANTS)) {
+	save(`static/art/bouquet-ribbon-${id}.png`, drawBouquetRibbon(ribbon.main, ribbon.crease));
+}
 
 for (const [id, variant] of Object.entries(PAPER_VARIANTS)) {
 	/* Shadows take the wrap's own hue, so blue paper never gets a brown smudge. */
@@ -2395,6 +2592,7 @@ for (const [id, variant] of Object.entries(PAPER_VARIANTS)) {
 	const front = drawBouquetPaperFront(back, 460 / 2, variant.palette, variant);
 	save(`static/art/bouquet-paper-${id}.png`, back);
 	save(`static/art/bouquet-paper-front-${id}.png`, front);
+	save(`static/art/thumbs/bouquet-paper-${id}.png`, downscale(back, 360));
 }
 save('static/art/logo-mark.png', drawLogoMark());
 save('static/favicon.png', drawFavicon());
