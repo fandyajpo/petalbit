@@ -100,42 +100,6 @@ export const BOUQUET_PAPERS: BouquetPaper[] = [
 			hideFront: false,
 			filter: 'sepia(0.45) saturate(1.15) hue-rotate(320deg) brightness(1.01)'
 		}
-	},
-	{
-		id: 'yellow',
-		name: 'Yellow Paper',
-		description: 'Warm yellow wrap, like morning light on paper.',
-		paperImage: '/art/bouquet-paper-yellow.png',
-		frontImage: '/art/bouquet-paper-front.png',
-		ribbon: true,
-		layout: { filter: 'saturate(1.1) brightness(1.05)' }
-	},
-	{
-		id: 'blue',
-		name: 'Blue Paper',
-		description: 'Cool blue wrap, like a calm sky.',
-		paperImage: '/art/bouquet-paper-blue.png',
-		frontImage: '/art/bouquet-paper-front.png',
-		ribbon: true,
-		layout: { filter: 'hue-rotate(200deg) saturate(1.1) brightness(1.02)' }
-	},
-	{
-		id: 'red-polka-dot',
-		name: 'Red Polka Dot',
-		description: 'Playful red dots on white — fun and festive.',
-		paperImage: '/art/bouquet-paper-dot.png',
-		frontImage: '/art/bouquet-paper-front.png',
-		ribbon: false,
-		layout: { filter: 'brightness(1.05) contrast(1.02)' }
-	},
-	{
-		id: 'black',
-		name: 'Black Paper',
-		description: 'Sophisticated black wrap, like ink on vellum.',
-		paperImage: '/art/bouquet-paper-black.png',
-		frontImage: '/art/bouquet-paper-front.png',
-		ribbon: true,
-		layout: { filter: 'brightness(0.97) contrast(0.98)' }
 	}
 ];
 
