@@ -1,5 +1,15 @@
 export type StemLayer = 'auto' | 'front' | 'back';
 
+export type VoiceNote = {
+	/** Pinata/IPFS content id. */
+	cid: string;
+	url: string;
+	/** Length in seconds, at most 10. */
+	duration: number;
+	/** Normalised waveform peaks (0..1), for the themed player scrubber. */
+	peaks?: number[];
+};
+
 export type Bouquet = {
 	id: string;
 	sender: string;
@@ -12,6 +22,8 @@ export type Bouquet = {
 	paper?: string;
 	/** Optional animated backdrop; defaults to the first background when missing. */
 	background?: string;
+	/** Optional audio note, pinned to IPFS and capped at 10 seconds. */
+	voice?: VoiceNote;
 	createdAt: string;
 };
 

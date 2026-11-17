@@ -72,6 +72,9 @@ function payload(bouquet: Bouquet, origin: string) {
 					},
 					{ name: 'Bouquet', value: `\`${bouquet.id}\``, inline: true },
 					{ name: 'Made', value: stamp(created), inline: true },
+					...(bouquet.voice
+						? [{ name: 'Voice note', value: `${bouquet.voice.duration.toFixed(1)}s mp3`, inline: true }]
+						: []),
 					{ name: 'Expires', value: stamp(expires), inline: true }
 				],
 				footer: { text: 'petalbit · 7 day bouquets' },

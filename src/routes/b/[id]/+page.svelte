@@ -4,6 +4,7 @@
 	import Bouquet from '$lib/components/Bouquet.svelte';
 	import BouquetBackground from '$lib/components/BouquetBackground.svelte';
 	import CopyLink from '$lib/components/CopyLink.svelte';
+	import VoicePlayer from '$lib/components/VoicePlayer.svelte';
 	import SoundToggle from '$lib/components/SoundToggle.svelte';
 	import SocialShare from '$lib/components/SocialShare.svelte';
 	import { getFlower } from '$lib/data/flowers';
@@ -11,6 +12,7 @@
 	import { splitText } from '$lib/actions/motion';
 	import { reveal } from '$lib/actions/reveal';
 	import { playSound } from '$lib/sound';
+	import { formatClipDuration } from '$lib/voice';
 
 	let { data }: { data: PageData } = $props();
 
@@ -160,6 +162,16 @@
 			</blockquote>
 
 			<p class="letter-sign">From {bouquet.sender}</p>
+
+			{#if bouquet.voice}
+				<figure class="voice-note">
+					<figcaption>
+						<span class="voice-note-label">Voice note</span>
+						<span class="voice-note-len">{formatClipDuration(bouquet.voice.duration)}</span>
+					</figcaption>
+					<VoicePlayer src={bouquet.voice.url} duration={bouquet.voice.duration} peaks={bouquet.voice.peaks} />
+				</figure>
+			{/if}
 
 			<ul class="flower-tags">
 				{#each flowerGroups as group (group.flower.id)}
@@ -447,6 +459,39 @@
 		position: relative;
 		z-index: 1;
 	}
+
+	.voice-note {
+		margin: 1rem 0 0;
+		border: 1.5px solid var(--color-rule);
+		border-radius: 3px;
+		background: color-mix(in srgb, var(--color-beige) 55%, var(--color-paper));
+		padding: 0.55rem 0.7rem 0.7rem;
+		position: relative;
+		z-index: 1;
+	}
+
+	.voice-note figcaption {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.voice-note-label {
+		font-family: var(--font-mono);
+		font-size: 0.55rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-ink-faint);
+	}
+
+	.voice-note-len {
+		font-family: var(--font-mono);
+		font-size: 0.58rem;
+		color: var(--color-rose-deep);
+	}
+
 
 	.flower-count {
 		font-family: var(--font-mono);

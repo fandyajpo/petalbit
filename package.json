@@ -7,7 +7,8 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"test": "node --test --experimental-strip-types tests/*.test.mjs",
     "theme:check": "node scripts/check-themes.mjs",
     "content:check": "node scripts/check-blog-content.mjs",
     "links:check": "node scripts/check-external-links.mjs",
@@ -27,6 +28,7 @@
     "vite": "^6.2.0"
   },
   "dependencies": {
+    "@_mehrad/lamejs": "^2.0.0",
     "@upstash/redis": "^1.34.4",
     "@vercel/functions": "^3.11.1",
     "marked": "^18.2.0",

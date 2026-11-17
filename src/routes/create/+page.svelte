@@ -36,6 +36,8 @@
 	import { BOUQUET_TTL_SECONDS, fieldLimits, type StemLayer } from '$lib/types';
 	import { validateBouquet } from '$lib/validation';
 	import { playSound } from '$lib/sound';
+	import { formatClipDuration, type VoiceClip } from '$lib/voice';
+	import VoiceNoteRecorder from '$lib/components/VoiceNoteRecorder.svelte';
 
 	const steps = [
 		{ n: 1, label: 'Flowers' },
@@ -76,6 +78,7 @@
 	let sender = $state('');
 	let recipient = $state('');
 	let message = $state('');
+	let voiceClip = $state<VoiceClip | null>(null);
 	let errors = $state<Record<string, string>>({});
 	let submitting = $state(false);
 	let serverError = $state('');
@@ -293,12 +296,31 @@
 		submitting = true;
 		serverError = '';
 
-		try {
-			const response = await fetch('/api/bouquets', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ sender, recipient, message, flowers: selected, layers, paper, background })
-			});
+				try {
+			// The clip rides along with the bouquet so the server can tag the
+			// pinned file with the bouquet id and clean it up later.
+			const form = new FormData();
+			form.append(
+				'data',
+				JSON.stringify({
+					sender,
+					recipient,
+					message,
+					flowers: selected,
+					layers,
+					paper,
+					background,
+					voicePeaks: voiceClip?.peaks
+				})
+			);
+			if (voiceClip) {
+				form.append(
+					'voice',
+					new File([voiceClip.blob], 'petalbit-voice.mp3', { type: 'audio/mpeg' })
+				);
+			}
+
+			const response = await fetch('/api/bouquets', { method: 'POST', body: form });
 			const data = await response.json().catch(() => null);
 
 			if (!response.ok || !data?.id) {
@@ -340,6 +362,7 @@
 		sender = '';
 		recipient = '';
 		message = '';
+		voiceClip = null;
 		errors = {};
 		serverError = '';
 		playSound('paper');
@@ -736,6 +759,14 @@
 										{/each}
 									</div>
 								</div>
+
+								<div class="field">
+									<VoiceNoteRecorder
+										clip={voiceClip}
+										onchange={(next) => (voiceClip = next)}
+										disabled={submitting}
+									/>
+								</div>
 							</div>
 						{:else}
 							<div class="panel-head">
@@ -788,6 +819,16 @@
 									<div class="review-value review-message selectable">{message.trim()}</div>
 									<button type="button" class="edit" onclick={() => goTo(2)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
 								</div>
+
+								{#if voiceClip}
+									<div class="review-row">
+										<span class="review-label">Voice note</span>
+										<div class="review-value">
+											{formatClipDuration(voiceClip.duration)} <span class="review-soft">mp3</span>
+										</div>
+										<button type="button" class="edit" onclick={() => goTo(2)} use:mPress={{ hoverScale: 1.05, pressScale: 0.96, lift: 0 }}>Edit</button>
+									</div>
+								{/if}
 							</div>
 
 							<div class="expiry" use:mEnter={{ y: 8, delay: 0.12, blur: 2 }}>
@@ -2125,6 +2166,11 @@
 
 	.success-body :global(.copy) {
 		margin-bottom: 0.9rem;
+	}
+
+	/* Breathing room between the share row and the "live until" card. */
+	.success-body .expiry {
+		margin-top: 1.1rem;
 	}
 
 	.success-actions {

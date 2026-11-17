@@ -3,6 +3,7 @@ import { FLOWERS, FLOWER_IDS, MAX_BOUQUET_FLOWERS } from '$lib/data/flowers';
 import { BACKGROUND_IDS, DEFAULT_BOUQUET_BACKGROUND } from '$lib/data/backgrounds';
 import { DEFAULT_BOUQUET_PAPER, PAPER_IDS } from '$lib/data/papers';
 import { fieldLimits } from '$lib/types';
+import { VOICE_MAX_SECONDS } from '$lib/voice';
 
 const MAX_PER_FLOWER = Math.max(...FLOWERS.map((flower) => flower.maxPerBouquet));
 
@@ -49,7 +50,18 @@ export const bouquetInputSchema = z.object({
 			(value) => (value === '' || value === null || value === undefined ? undefined : value),
 			z.enum(BACKGROUND_IDS as [string, ...string[]]).optional()
 		)
-		.default(DEFAULT_BOUQUET_BACKGROUND)
+		.default(DEFAULT_BOUQUET_BACKGROUND),
+	voice: z
+		.object({
+			cid: z.string().regex(/^[a-zA-Z0-9]{20,80}$/, 'Voice note id is invalid.'),
+			duration: z
+				.number()
+				.min(0.4, 'Voice note is too short.')
+				.max(VOICE_MAX_SECONDS + 0.3, 'Voice notes can be at most 10 seconds.'),
+			peaks: z.array(z.number().min(0).max(1)).max(200).optional()
+		})
+		.optional(),
+	voicePeaks: z.array(z.number().min(0).max(1)).max(200).optional()
 });
 
 export type BouquetInput = z.infer<typeof bouquetInputSchema>;
@@ -74,6 +86,7 @@ export function validateBouquet(input: {
 	paper?: string;
 	background?: string;
 	layers?: string[];
+	voice?: { cid: string; duration: number };
 }) {
 	const parsed = bouquetInputSchema.safeParse(input);
 	return {

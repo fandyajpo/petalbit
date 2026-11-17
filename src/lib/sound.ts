@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'petalbit:sound';
 
 let enabled = false;
+let suppressCount = 0;
 let hydrated = false;
 const listeners = new Set<(on: boolean) => void>();
 
@@ -24,6 +25,14 @@ export function getSoundOn(): boolean {
 export function subscribeSound(listener: (on: boolean) => void): () => void {
 	listeners.add(listener);
 	return () => listeners.delete(listener);
+}
+
+export function suppressSound() {
+	suppressCount += 1;
+}
+
+export function restoreSound() {
+	suppressCount = Math.max(0, suppressCount - 1);
 }
 
 export function setSoundOn(on: boolean) {
@@ -158,6 +167,7 @@ function getNoise(ctx: AudioContext): AudioBuffer {
 }
 
 export function playSound(kind: keyof typeof SOUNDS | string) {
+	if (suppressCount > 0) return;
 	if (!getSoundOn()) return;
 	const ctx = audio();
 	if (!ctx) return;

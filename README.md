@@ -14,8 +14,8 @@ and Vercel.
 | Route        | What it does                                                                 |
 | ------------ | ---------------------------------------------------------------------------- |
 | `/`          | Landing page: intro loader, hero bouquet, how it works, flower collection, donation |
-| `/create`    | Three-step studio: pick flowers, write the note, review and generate          |
-| `/b/[id]`    | The shared bouquet: note, flower list, live countdown, copy-link button       |
+| `/create`    | Three-step studio: pick flowers, write the note (optionally record 10s), review and generate |
+| `/b/[id]`    | The shared bouquet: note, optional voice note, flower list, live countdown, copy-link button |
 | `+error`     | Friendly 404/503 page for expired or missing bouquets                         |
 
 `/create?bunga=mawar,peony` pre-selects flowers, which is what the collection
@@ -46,6 +46,10 @@ Copy `.env.example` to `.env` and fill in the two Upstash values:
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 DISCORD_BOUQUET_WEBHOOK_URL=   # optional, see below
+PINATA_JWT=                    # optional, enables voice notes
+PINATA_GATEWAY=                # optional, e.g. fun-llama-300.mypinata.cloud
+QSTASH_TOKEN=                  # required for voice-note cleanup
+VOICE_EXPIRY_SECRET=           # required for voice-note cleanup
 ```
 
 1. Create a free database at [upstash.com](https://upstash.com).
@@ -71,6 +75,92 @@ flowers, bouquet id, and when it expires.
   requests are made.
 - To rotate it, edit the webhook in Discord (or create a new one) and update the
   environment variable in Vercel.
+
+### Voice notes (optional)
+
+A bouquet can carry one optional voice note: up to 10 seconds, encoded in the
+browser to 128 kbps MP3, then pinned to Pinata (IPFS). If either Pinata variable
+is unset the recorder shows a short "not set up yet" hint and bouquets still
+work without audio.
+
+1. Create an API key at [app.pinata.cloud](https://app.pinata.cloud/developers/api-keys)
+   with `org:files:write` and copy the **JWT** into `PINATA_JWT`.
+2. Optionally set `PINATA_GATEWAY` to your dedicated gateway host. Without it,
+   playback falls back to `gateway.pinata.cloud`, which is slower.
+3. Restart the dev server (Vite reads `.env` at boot) or redeploy on Vercel.
+
+How it works: the browser records with `MediaRecorder` (webm/opus in Chrome,
+mp4/aac in Safari), decodes it with the Web Audio API, trims to 10 seconds,
+mixes to mono and encodes MP3 with `@_mehrad/lamejs` (~31 kB gzip, loaded lazily
+only when someone records). The MP3 is sent as part of `POST /api/bouquets`
+(multipart form data), which checks the MIME type, size, magic bytes and the
+real duration read from the frame header, mints the bouquet id, then uploads the
+audio to `uploads.pinata.cloud/v3/files` with `network=public` and
+`keyvalues = { app: "petalbit", bouquetId }`. The JWT stays on the server and
+the bouquet only stores the CID, gateway URL and duration.
+
+### Voice note cleanup (no cron)
+
+Upstash Redis cannot notify a webhook about expiry: keyspace notifications exist
+only on a persistent pub/sub connection, which serverless functions cannot hold.
+Instead each voiced upload is queued in Redis and one [QStash](https://upstash.com/qstash)
+message is scheduled per **upload hour**, delayed `7d` — the same lifetime as the
+bouquet. When it fires, `POST /api/voice/expire-batch` reads that hour's queue,
+checks every bouquet in one `MGET`, and deletes only the pins whose bouquet is
+gone.
+
+- `voice:queue:<YYYYMMDDHH>` holds `bouquetId|fileId|cid` lines;
+  `voice:scheduled:<bucket>` marks that the bucket has a message. Both expire
+after 8 days, one more than the bouquet, so a bucket always outlives its message.
+  A bucket is written only during its own hour, then sealed, so processing never
+  races a new upload.
+- One message per hour caps QStash at 24 messages/day instead of one per bouquet;
+  the free plan's 1,000/day becomes a non-issue.
+- A run handles up to 50 clips with at most 4 Pinata deletes in flight, so a big
+  bucket stays under Pinata's rate limit. `429`/`5xx` responses stop the run and
+  the bucket is nudged again in 60s instead of hammering the API.
+- Existence is read with a single `MGET` per chunk rather than one `EXISTS` per
+  bouquet, which keeps Redis command usage flat as a bucket grows.
+- Set `QSTASH_TOKEN` (Upstash console → **QStash** tab → API keys) and
+  `VOICE_EXPIRY_SECRET` (any random 16+ chars). The token is used to publish;
+  the secret is forwarded as a bearer header so the expiry routes can reject
+  anything else (`401`). Do not paste the **Redis REST token** here — it looks
+  similar but QStash rejects it with `401 invalid token`; the publish call logs
+  that case explicitly.
+- The free QStash plan allows 1,000 messages/day and a maximum delay of exactly
+  7 days. If you ever extend `BOUQUET_TTL_SECONDS`, move to pay-as-you-go or the
+  publish will be rejected.
+- An entry joins the queue only after its bucket message is published, so a
+  failed publish cannot leave audio that nothing will ever clean up. Two
+  simultaneous uploads in the same hour may publish a duplicate bucket message;
+  duplicates are harmless because deletes tolerate `404` and the queue is
+  idempotent.
+- The message fires at the **first** upload of an hour + 7d, so a clip uploaded
+  later in that hour is still inside its own TTL when it arrives. Such entries
+  stay queued and the bucket is re-armed at the earliest real `PTTL` (plus a
+  15s cushion), not on a fixed minute — five 60s nudges could never cover a
+  59-minute gap. A bucket-close schedule (`7d + up to 1h`) is not publishable on
+  the free plan, which caps a delay at exactly 7 days; re-arming from the live
+  TTL always stays inside that cap. Re-arms are capped at 3 and logged if a
+  bucket somehow keeps reporting live clips.
+- QStash retries failed deliveries (5 here). Delete failures get up to 5
+  minute-apart retries; chunk continuation (a bucket with more than 50 clips)
+  only publishes another message when the run actually deleted something, so a
+  live-only queue re-arms instead of looping.
+- `npm test` covers the re-arm math and the continuation decision, including
+  two clips created minutes apart in the same hour (the regression where the
+  earlier clip's file could be stranded).
+- `POST /api/voice/expire` still exists for the single-bouquet messages published
+  before batching; new bouquets only use `/api/voice/expire-batch`.
+- If scheduling fails during creation the file is unpinned and the request
+  returns `503`, so a bouquet never exists with unmanaged audio.
+- QStash cannot call localhost, so local uploads skip scheduling (the server logs
+  a warning). Those local test clips need manual cleanup; production is covered.
+- To exercise the loop quickly, set `VOICE_EXPIRY_DELAY=45s` and expose the dev
+  server with a tunnel; the delay override only changes the QStash schedule.
+- Deleting a file removes it from Pinata and unpins it. It cannot retract copies
+  other IPFS nodes may already hold, so treat pinned audio as public forever:
+  never upload anything private.
 
 ## Scripts
 

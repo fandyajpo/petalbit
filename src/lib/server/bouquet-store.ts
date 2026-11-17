@@ -42,9 +42,9 @@ function redis(): Redis | null {
 	return client;
 }
 
-export function isStorageConfigured(): boolean {
-	const db = redis();
-	return db !== null;
+/** Shared client for the voice queue; null in the local in-memory fallback. */
+export function sharedRedis(): Redis | null {
+	return redis();
 }
 
 /**
@@ -158,6 +158,63 @@ export async function saveBouquet(bouquet: Bouquet): Promise<void> {
 		expiresAt: Date.now() + BOUQUET_TTL_SECONDS * 1000
 	});
 	cacheSet(bouquet.id, bouquet);
+}
+
+/**
+ * Batch existence check for the voice queue. One MGET instead of N round trips;
+ * keys are uncached so an expired bouquet is never reported as alive.
+ */
+export async function existingBouquetIds(ids: string[]): Promise<Set<string>> {
+	const alive = new Set<string>();
+	if (ids.length === 0) return alive;
+
+	const db = requireRedis();
+	if (db) {
+		const values: unknown = await db.mget(...ids.map((id) => key(id)));
+		// A null/non-array result means the command did not run as expected; fail
+		// closed so the caller never treats unknown bouquets as expired.
+		if (!Array.isArray(values)) throw new Error('Redis MGET returned no result');
+		ids.forEach((id, index) => {
+			if (values[index]) alive.add(id);
+		});
+		return alive;
+	}
+
+	const store = memoryStore();
+	const now = Date.now();
+	for (const id of ids) {
+		const entry = store.get(key(id));
+		if (entry && entry.expiresAt > now) alive.add(id);
+	}
+	return alive;
+}
+
+/**
+ * Remaining lifetime of a bouquet in ms, or null when it is already gone.
+ * Used to re-arm a voice bucket at the last clip's real expiry.
+ */
+export async function bouquetTtlMs(id: string): Promise<number | null> {
+	const db = requireRedis();
+	if (db) {
+		const ttl = await db.pttl(key(id));
+		return typeof ttl === 'number' && ttl > 0 ? ttl : null;
+	}
+
+	const entry = memoryStore().get(key(id));
+	if (!entry) return null;
+	const remaining = entry.expiresAt - Date.now();
+	return remaining > 0 ? remaining : null;
+}
+
+/** Uncached existence check, used by the single-bouquet expiry webhook. */
+export async function bouquetExists(id: string): Promise<boolean> {
+	const db = requireRedis();
+	if (db) {
+		const count = await db.exists(key(id));
+		return count === 1;
+	}
+	const entry = memoryStore().get(key(id));
+	return Boolean(entry && entry.expiresAt > Date.now());
 }
 
 export async function getBouquet(id: string): Promise<Bouquet | null> {
