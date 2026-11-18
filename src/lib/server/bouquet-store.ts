@@ -265,6 +265,47 @@ export async function getBouquet(id: string): Promise<Bouquet | null> {
 	}
 }
 
+/**
+ * Share images (og.png, card.png) are deterministic for a bouquet's lifetime:
+ * the bouquet never changes and cannot outlive its TTL. Rendering one decodes
+ * a dozen artwork files and re-encodes a 1200x630 image, so the bytes are worth
+ * keeping — the first crawler hit on a cold edge renders, the rest just read.
+ *
+ * Artwork is stored base64 encoded; Upstash rejects values over 1 MB and base64
+ * adds a third on top, so anything near that is simply not cached.
+ */
+const IMAGE_MAX_BYTES = 500_000;
+const imageKey = (key: string) => `image:${key}`;
+
+export async function getCachedImage(key: string): Promise<Buffer | null> {
+	const db = redis();
+	if (!db) return null;
+	try {
+		const stored = await db.get<string>(imageKey(key));
+		if (typeof stored !== 'string' || !stored) return null;
+		return Buffer.from(stored, 'base64');
+	} catch (error) {
+		// A cache miss caused by a broken read is still a miss, never an error.
+		console.error('[petalbit] failed to read cached share image', error);
+		return null;
+	}
+}
+
+export async function cacheImage(
+	key: string,
+	png: Buffer,
+	ttlSeconds: number
+): Promise<void> {
+	if (ttlSeconds <= 0 || png.byteLength > IMAGE_MAX_BYTES) return;
+	const db = redis();
+	if (!db) return;
+	try {
+		await db.set(imageKey(key), png.toString('base64'), { ex: ttlSeconds });
+	} catch (error) {
+		console.error('[petalbit] failed to cache share image', error);
+	}
+}
+
 /** Cryptographically random, URL-friendly id (no ambiguous characters). */
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
 

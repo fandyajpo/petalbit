@@ -1,7 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getBouquet } from '$lib/server/bouquet-store';
+import { cacheImage, getBouquet, getCachedImage } from '$lib/server/bouquet-store';
 import { bouquetIdSchema } from '$lib/validation';
+import { BOUQUET_TTL_SECONDS } from '$lib/types';
 import { renderBouquetOg } from '$lib/server/og-image';
 import { RATE_LIMITS, rateLimit, requestIp } from '$lib/server/rate-limit';
 
@@ -30,18 +31,29 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
 	}
 	if (!bouquet) throw error(404, 'Bouquet not found');
 
-	let png: Buffer;
-	try {
-		png = await renderBouquetOg(bouquet, url.origin);
-	} catch (cause) {
-		console.error('[petalbit] failed to render og image', cause);
-		throw error(500, 'Could not render this bouquet preview');
+	// The bouquet is immutable, so this image can be rendered once and reused
+	// until the bouquet expires instead of on every cold edge hit.
+	const remaining = Math.max(
+		60,
+		Math.floor((Date.parse(bouquet.createdAt) + BOUQUET_TTL_SECONDS * 1000 - Date.now()) / 1000)
+	);
+	const cacheKey = `og:${bouquet.id}`;
+
+	let png = await getCachedImage(cacheKey);
+	if (!png) {
+		try {
+			png = await renderBouquetOg(bouquet, url.origin);
+		} catch (cause) {
+			console.error('[petalbit] failed to render og image', cause);
+			throw error(500, 'Could not render this bouquet preview');
+		}
+		void cacheImage(cacheKey, png, remaining);
 	}
 
 	return new Response(new Uint8Array(png), {
 		headers: {
 			'content-type': 'image/png',
-			'cache-control': 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400'
+			'cache-control': `public, max-age=0, s-maxage=${Math.min(remaining, 604_800)}, stale-while-revalidate=86400`
 		}
 	});
 };

@@ -1813,6 +1813,10 @@
 		overflow: hidden;
 		border: 1px solid var(--color-rule-soft);
 		flex-shrink: 0;
+		/* Thirteen full background scenes live in this picker; skip the ones
+		   scrolled out of view instead of keeping every layer composited. */
+		content-visibility: auto;
+		contain-intrinsic-size: 38px 38px;
 	}
 
 	.bg-card .paper-check {
