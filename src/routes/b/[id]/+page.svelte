@@ -225,6 +225,34 @@
 		</a>
 	</div>
 	{/if}
+
+	<div class="support-strip" use:mEnter={{ y: 10, delay: 0.2, blur: 3 }}>
+		<p class="support-copy">Support the developer</p>
+		<div class="support-actions">
+			<a
+				class="support-btn"
+				href="https://saweria.co/fandy11"
+				target="_blank"
+				rel="noopener noreferrer"
+				data-sound="paper"
+			>
+				<img src="/brand/saweria.png" alt="" width="16" height="16" loading="lazy" />
+				Saweria
+				<span class="sr-only">(opens in a new tab)</span>
+			</a>
+			<a
+				class="support-btn"
+				href="https://sociabuzz.com/fandybuzz/tribe"
+				target="_blank"
+				rel="noopener noreferrer"
+				data-sound="paper"
+			>
+				<img src="/brand/sociabuzz.png" alt="" width="16" height="16" loading="lazy" />
+				Sociabuzz
+				<span class="sr-only">(opens in a new tab)</span>
+			</a>
+		</div>
+	</div>
 </section>
 
 <style>
@@ -876,5 +904,80 @@
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		color: var(--color-ink-faint);
+	}
+
+	/* -------------------------------------------------------------- support */
+	.support-strip {
+		position: relative;
+		z-index: 2;
+		margin-top: clamp(1.4rem, 3.5vw, 2rem);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.8rem 1.2rem;
+		padding-top: clamp(1rem, 2.5vw, 1.4rem);
+		border-top: 1px dashed var(--color-rule);
+	}
+
+	.support-copy {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 0.92rem;
+		color: var(--color-ink-faint);
+	}
+
+	.support-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.support-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		border: 1px solid var(--color-rule);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--color-paper) 80%, transparent);
+		padding: 0.42rem 0.8rem 0.42rem 0.55rem;
+		font-family: var(--font-mono);
+		font-size: 0.56rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-ink-soft);
+		text-decoration: none;
+		transition:
+			background-color 180ms ease,
+			border-color 180ms ease,
+			color 180ms ease;
+	}
+
+	.support-btn img {
+		display: block;
+		width: 16px;
+		height: 16px;
+		border-radius: 3px;
+		opacity: 0.92;
+	}
+
+	.support-btn:hover {
+		background: var(--color-ink);
+		border-color: var(--color-ink);
+		color: var(--color-paper);
+	}
+
+	.support-btn:hover img {
+		opacity: 1;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 </style>
