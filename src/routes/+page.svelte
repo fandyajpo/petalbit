@@ -11,7 +11,7 @@
 			n: '01',
 			meta: 'Pick',
 			title: 'Pick your blooms',
-			text: 'Choose up to seven pixel stems from nine species. Mix the vibe that feels most you.',
+			text: 'Choose up to seven pixel stems from eighteen species. Mix the vibe that feels most you.',
 			art: '/art/flowers/mawar.png',
 			alt: 'Pixel rose illustration'
 		},

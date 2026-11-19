@@ -453,6 +453,30 @@ const P = {
 	irisDeep: ramp(272, 0.5, 0.16, 0.56, 8),
 	irisPale: ramp(280, 0.28, 0.56, 0.95, 9, { hueShift: 8 }),
 	beard: ramp(46, 0.85, 0.5, 0.98, 7),
+	hydra: ramp(214, 0.46, 0.36, 0.86, 9, { hueShift: 8 }),
+	hydraPale: ramp(226, 0.32, 0.52, 0.94, 9, { hueShift: 6 }),
+	hydraDeep: ramp(224, 0.5, 0.24, 0.6, 8),
+	camellia: ramp(348, 0.52, 0.3, 0.88, 9, { hueShift: 7 }),
+	camelliaPale: ramp(352, 0.34, 0.58, 0.96, 9, { hueShift: 6 }),
+	camelliaDeep: ramp(344, 0.52, 0.2, 0.56, 8),
+	dahlia: ramp(352, 0.6, 0.26, 0.78, 9, { hueShift: 7 }),
+	dahliaDeep: ramp(346, 0.58, 0.16, 0.5, 8),
+	dahliaTip: ramp(356, 0.44, 0.46, 0.9, 8, { hueShift: 6 }),
+	poppy: ramp(5, 0.72, 0.34, 0.8, 9, { hueShift: 6 }),
+	poppyDeep: ramp(2, 0.62, 0.2, 0.52, 8),
+	poppyHeart: ramp(352, 0.34, 0.08, 0.26, 7),
+	marigold: ramp(28, 0.84, 0.34, 0.82, 9, { hueShift: 6 }),
+	marigoldPale: ramp(42, 0.82, 0.56, 0.94, 8, { hueShift: 5 }),
+	marigoldDeep: ramp(20, 0.8, 0.22, 0.56, 8),
+	hibiscus: ramp(342, 0.62, 0.32, 0.82, 9, { hueShift: 7 }),
+	hibiscusPale: ramp(348, 0.46, 0.56, 0.94, 8, { hueShift: 6 }),
+	hibiscusThroat: ramp(340, 0.62, 0.14, 0.4, 7),
+	wisteria: ramp(268, 0.4, 0.4, 0.86, 9, { hueShift: 9 }),
+	wisteriaPale: ramp(282, 0.3, 0.6, 0.96, 9, { hueShift: 7 }),
+	wisteriaDeep: ramp(272, 0.42, 0.26, 0.54, 8),
+	magnolia: ramp(32, 0.3, 0.6, 0.97, 10, { hueShift: 8 }),
+	magnoliaBlush: ramp(346, 0.34, 0.56, 0.94, 9, { hueShift: 6 }),
+	magnoliaDeep: ramp(340, 0.4, 0.3, 0.56, 8),
 	paper: ramp(34, 0.24, 0.55, 0.95, 12, { hueShift: 8 }),
 	paperCrease: ramp(32, 0.2, 0.34, 0.66, 7, { hueShift: 6 }),
 	ribbon: ramp(352, 0.42, 0.22, 0.82, 8, { hueShift: 8 }),
@@ -1441,6 +1465,630 @@ function drawEucalyptus() {
 	petal(img, { cx: CX - 2, cy: topY - 4, rx: 3.8, ry: 5.8, ramp: P.euc, rimPx: 0.9, seed: 340 });
 	return img;
 }
+function drawHydrangea() {
+	const img = canvas();
+	const pts = stemPath(140, 0.3, 5);
+	leafOnStem(img, pts, { y: 168, side: -1, angle: 0.6, len: 30, width: 11, opts: { veins: 4, serrate: 1, seed: 811 } });
+	leafOnStem(img, pts, { y: 200, side: 1, angle: 0.56, len: 26, width: 9.5, opts: { veins: 4, serrate: 1, seed: 821 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 76;
+	const R = 48;
+	const rand = rng(801);
+
+	// the mophead throws a soft shadow of its own over the leaves below
+	petal(img, { cx, cy: cy + 10, rx: R, ry: R * 0.86, ramp: P.hydraDeep, alpha: 0.22, rimPx: 0, dither: 0.4, seed: 820 });
+
+	// florets packed into a dome, back rows first so the front ones overlap
+	const florets = [];
+	for (let i = 0; i < 70; i++) {
+		const a = rand() * Math.PI * 2;
+		const rr = Math.sqrt(rand());
+		florets.push({
+			x: cx + Math.cos(a) * rr * R,
+			y: cy + Math.sin(a) * rr * R * 0.84,
+			lift: 1 - rr
+		});
+	}
+	florets.sort((a, b) => a.y - b.y);
+	florets.forEach((f, i) => {
+		const size = 8.8 + f.lift * 3.4;
+		const ramp = f.y < cy - 6 ? P.hydraPale : f.y > cy + 16 ? P.hydraDeep : P.hydra;
+		for (let k = 0; k < 4; k++) {
+			const a = (k / 4) * Math.PI * 2 + rand() * 0.4;
+			petal(img, {
+				cx: f.x + Math.cos(a) * size * 0.5,
+				cy: f.y + Math.sin(a) * size * 0.46,
+				rx: size * 0.62,
+				ry: size * 0.52,
+				rot: a,
+				power: 1.65,
+				ramp,
+				trimPx: 0.55,
+				trimMul: 0.62,
+				baseShade: 0.16,
+				sheen: 0.1,
+				dither: 0.85,
+				seed: 830 + i * 5 + k
+			});
+		}
+		petal(img, { cx: f.x, cy: f.y, rx: size * 0.26, ry: size * 0.22, ramp: P.hydraDeep, trimPx: 0.4, trimMul: 0.7, seed: 831 + i * 5 });
+	});
+	return img;
+}
+
+function drawCamellia() {
+	const img = canvas();
+	const pts = stemPath(124, -0.4);
+	leafOnStem(img, pts, { y: 166, side: -1, angle: 0.66, len: 27, width: 9.5, opts: { veins: 4, seed: 861 } });
+	leafOnStem(img, pts, { y: 198, side: 1, angle: 0.6, len: 23, width: 8.5, opts: { veins: 3, seed: 862 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 76;
+	const R = 46;
+
+	// calyx tucked under the bloom
+	for (let i = 0; i < 5; i++) {
+		const a = Math.PI / 2 + (i - 2) * 0.5;
+		petal(img, {
+			cx: cx + Math.cos(a) * 8,
+			cy: cy + R * 0.72 + Math.sin(a) * 2.4,
+			rx: 9,
+			ry: 3.2,
+			rot: a,
+			power: 1.5,
+			ramp: P.stemDeep,
+			trimPx: 0.5,
+			trimMul: 0.66,
+			seed: 855 + i
+		});
+	}
+
+	// outer ring: broad, round, overlapping petals that lie almost flat
+	for (let i = 0; i < 7; i++) {
+		const a = (i / 7) * Math.PI * 2 + 0.22;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.52,
+			cy: cy + Math.sin(a) * R * 0.48,
+			rx: R * 0.6,
+			ry: R * 0.46,
+			rot: a + 1.2,
+			power: 2.05,
+			ramp: P.camellia,
+			trimPx: 1.4,
+			trimMul: 0.48,
+			baseShade: 0.26,
+			sheen: 0.12,
+			veins: 3,
+			veinStrength: 0.06,
+			seed: 870 + i
+		});
+	}
+
+	// inner ring, offset and paler toward the middle
+	for (let i = 0; i < 6; i++) {
+		const a = (i / 6) * Math.PI * 2 + 0.9;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.28,
+			cy: cy + Math.sin(a) * R * 0.26,
+			rx: R * 0.46,
+			ry: R * 0.34,
+			rot: a + 1.4,
+			power: 2.05,
+			ramp: P.camelliaPale,
+			trimPx: 1.2,
+			trimMul: 0.52,
+			baseShade: 0.28,
+			sheen: 0.14,
+			seed: 880 + i
+		});
+	}
+
+	// golden stamen boss at the heart
+	petal(img, { cx, cy: cy + 1, rx: R * 0.2, ry: R * 0.17, ramp: P.gold, trimPx: 1, trimMul: 0.5, insideWarm: 0.3, seed: 890 });
+	const rand = rng(891);
+	for (let i = 0; i < 26; i++) {
+		const a = rand() * Math.PI * 2;
+		const rr = Math.sqrt(rand()) * R * 0.19;
+		petal(img, {
+			cx: cx + Math.cos(a) * rr,
+			cy: cy + 1 + Math.sin(a) * rr * 0.9,
+			rx: 1.5,
+			ry: 1.1,
+			ramp: i % 3 === 0 ? P.anther : P.pollen,
+			trimPx: 0.3,
+			seed: 892 + i
+		});
+	}
+	petal(img, { cx, cy: cy + 1, rx: R * 0.07, ry: R * 0.06, ramp: P.cream, trimPx: 0.4, rimMul: 0.8, seed: 899 });
+	return img;
+}
+
+function drawDahlia() {
+	const img = canvas();
+	const pts = stemPath(130, 0.35, 5.2);
+	leafOnStem(img, pts, { y: 170, side: -1, angle: 0.62, len: 28, width: 10.5, opts: { veins: 4, serrate: 1, seed: 921 } });
+	leafOnStem(img, pts, { y: 202, side: 1, angle: 0.58, len: 24, width: 9, opts: { veins: 4, serrate: 1, seed: 922 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 78;
+	const R = 48;
+	const rand = rng(903);
+
+	petal(img, { cx, cy: cy + 8, rx: R * 0.98, ry: R * 0.88, ramp: P.dahliaDeep, alpha: 0.4, rimPx: 0, dither: 0.4, seed: 925 });
+
+	// cactus-dahlia rays: five rings tightening toward the centre
+	const rings = [
+		{ n: 15, off: 0.08, reach: 0.6, rx: 0.56, ry: 0.15, inner: 0, ramp: P.dahlia },
+		{ n: 13, off: 0.32, reach: 0.48, rx: 0.48, ry: 0.135, inner: 1, ramp: P.dahlia },
+		{ n: 11, off: 0.12, reach: 0.37, rx: 0.4, ry: 0.12, inner: 2, ramp: P.dahliaTip },
+		{ n: 9, off: 0.36, reach: 0.26, rx: 0.32, ry: 0.1, inner: 3, ramp: P.dahliaTip },
+		{ n: 7, off: 0.16, reach: 0.15, rx: 0.24, ry: 0.085, inner: 4, ramp: P.dahliaTip }
+	];
+	for (const [ri, ring] of rings.entries()) {
+		for (let i = 0; i < ring.n; i++) {
+			const a = (i / ring.n) * Math.PI * 2 + ring.off + (rand() - 0.5) * 0.05;
+			const len = R * ring.rx * (0.92 + rand() * 0.16);
+			petal(img, {
+				cx: cx + Math.cos(a) * len * ring.reach,
+				cy: cy + Math.sin(a) * len * ring.reach,
+				rx: len,
+				ry: R * ring.ry * (0.92 + rand() * 0.18),
+				rot: a,
+				power: 1.42,
+				ramp: ring.ramp,
+				trimPx: 1,
+				trimMul: ri === 0 ? 0.5 : 0.56,
+				baseShade: 0.26,
+				sheen: 0.1,
+				veins: 2,
+				veinStrength: 0.08,
+				seed: 930 + ri * 40 + i
+		});
+		}
+	}
+
+	// tight quilled heart
+	petal(img, { cx, cy, rx: R * 0.14, ry: R * 0.12, ramp: P.dahliaDeep, trimPx: 0.8, trimMul: 0.6, seed: 1010 });
+	for (let i = 0; i < 5; i++) {
+		const a = rand() * Math.PI * 2;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.05,
+			cy: cy + Math.sin(a) * R * 0.05,
+			rx: R * 0.09,
+			ry: R * 0.05,
+			rot: a,
+			ramp: P.dahliaTip,
+			trimPx: 0.5,
+			seed: 1011 + i
+		});
+	}
+	return img;
+}
+
+function drawPoppy() {
+	const img = canvas();
+	const pts = stemPath(126, -0.45, 4.8);
+	leafOnStem(img, pts, { y: 172, side: -1, angle: 0.72, len: 26, width: 8, opts: { veins: 3, serrate: 1, seed: 1041 } });
+	leafOnStem(img, pts, { y: 202, side: 1, angle: 0.66, len: 22, width: 7, opts: { veins: 3, serrate: 1, seed: 1042 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 80;
+	const R = 50;
+	const rand = rng(1003);
+
+	// four big crinkled petals, deliberately uneven
+	for (let i = 0; i < 4; i++) {
+		const a = -Math.PI / 2 + (i / 4) * Math.PI * 2 + 0.18;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.36,
+			cy: cy + Math.sin(a) * R * 0.32,
+			rx: R * (0.68 + rand() * 0.06),
+			ry: R * (0.55 + rand() * 0.05),
+			rot: a + Math.PI / 2,
+			power: 2.1,
+			teeth: 18,
+			toothDepth: 0.05,
+			ramp: P.poppy,
+			trimPx: 1.5,
+			trimMul: 0.44,
+			baseShade: 0.32,
+			sheen: 0.18,
+			veins: 4,
+			veinStrength: 0.09,
+			seed: 1050 + i
+		});
+		// darker wash where the petal tucks under its neighbour
+		petal(img, {
+			cx: cx + Math.cos(a + 0.9) * R * 0.52,
+			cy: cy + Math.sin(a + 0.9) * R * 0.5,
+			rx: R * 0.26,
+			ry: R * 0.2,
+			rot: a,
+			ramp: P.poppyDeep,
+			alpha: 0.3,
+			trimPx: 0,
+			dither: 0.5,
+			seed: 1060 + i
+		});
+	}
+
+	// dark heart with a crown of stamens
+	petal(img, { cx, cy, rx: R * 0.25, ry: R * 0.23, ramp: P.poppyHeart, trimPx: 1.2, trimMul: 0.6, seed: 1070 });
+	petal(img, { cx, cy: cy + 1, rx: R * 0.17, ry: R * 0.15, ramp: P.seed, trimPx: 0, dither: 0.7, seed: 1071 });
+	for (let i = 0; i < 30; i++) {
+		const a = (i / 30) * Math.PI * 2 + rand() * 0.3;
+		const r0 = R * 0.2;
+		const r1 = R * (0.28 + rand() * 0.06);
+		stroke(
+			img,
+			[
+				[cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.92],
+				[cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * 0.92]
+			],
+			{ width: 0.8, widthEnd: 0.6, ramp: P.poppyHeart, seed: 1072 + i, shade: 1.1 }
+		);
+		petal(img, {
+			cx: cx + Math.cos(a) * r1,
+			cy: cy + Math.sin(a) * r1 * 0.92,
+			rx: 1.2,
+			ry: 0.9,
+			ramp: P.anther,
+			trimPx: 0.2,
+			seed: 1080 + i
+		});
+	}
+	// pale pistil crown sitting on the dark disc
+	petal(img, { cx, cy: cy - 1, rx: R * 0.1, ry: R * 0.09, ramp: P.sagePale, trimPx: 0.6, trimMul: 0.7, seed: 1090 });
+	return img;
+}
+
+function drawMarigold() {
+	const img = canvas();
+	const pts = stemPath(128, 0.2, 5);
+	leafOnStem(img, pts, { y: 168, side: -1, angle: 0.66, len: 26, width: 8, opts: { veins: 3, serrate: 1, seed: 1211 } });
+	leafOnStem(img, pts, { y: 198, side: 1, angle: 0.6, len: 22, width: 7, opts: { veins: 3, serrate: 1, seed: 1212 } });
+	leafOnStem(img, pts, { y: 218, side: -1, angle: 0.7, len: 18, width: 6, opts: { veins: 2, serrate: 1, seed: 1213 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 84;
+	const R = 44;
+	const rand = rng(1201);
+
+	petal(img, { cx, cy: cy + 8, rx: R, ry: R * 0.9, ramp: P.marigoldDeep, alpha: 0.35, rimPx: 0, dither: 0.4, seed: 1205 });
+
+	// tightly packed ruffles: short fans of petals in shrinking rings
+	const rings = [
+		{ n: 18, off: 0.1, reach: 0.62, rx: 0.34, ry: 0.16, ramp: P.marigold },
+		{ n: 16, off: 0.36, reach: 0.5, rx: 0.3, ry: 0.15, ramp: P.marigold },
+		{ n: 13, off: 0.18, reach: 0.38, rx: 0.26, ry: 0.14, ramp: P.marigoldPale },
+		{ n: 11, off: 0.42, reach: 0.27, rx: 0.22, ry: 0.13, ramp: P.marigoldPale },
+		{ n: 8, off: 0.22, reach: 0.16, rx: 0.18, ry: 0.12, ramp: P.marigoldPale }
+	];
+	for (const [ri, ring] of rings.entries()) {
+		for (let i = 0; i < ring.n; i++) {
+			const a = (i / ring.n) * Math.PI * 2 + ring.off + (rand() - 0.5) * 0.12;
+			const len = R * ring.rx * (0.9 + rand() * 0.24);
+			petal(img, {
+				cx: cx + Math.cos(a) * len * ring.reach,
+				cy: cy + Math.sin(a) * len * ring.reach * 0.94,
+				rx: len,
+				ry: R * ring.ry * (0.9 + rand() * 0.2),
+				rot: a,
+				power: 1.7,
+				teeth: 7,
+				toothDepth: 0.1,
+				ramp: ring.ramp,
+				trimPx: 0.8,
+				trimMul: 0.62,
+				baseShade: 0.2,
+				sheen: 0.12,
+				insideWarm: ri > 2 ? 0.14 : 0.04,
+				seed: 1220 + ri * 40 + i
+			});
+		}
+	}
+
+	// the frilly crown in the middle
+	petal(img, { cx, cy: cy - 1, rx: R * 0.13, ry: R * 0.11, ramp: P.marigoldDeep, trimPx: 0.7, trimMul: 0.66, insideWarm: 0.2, seed: 1400 });
+	for (let i = 0; i < 9; i++) {
+		const a = (i / 9) * Math.PI * 2;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.1,
+			cy: cy - 1 + Math.sin(a) * R * 0.09,
+			rx: R * 0.08,
+			ry: R * 0.05,
+			rot: a,
+			ramp: P.marigoldPale,
+			trimPx: 0.4,
+			seed: 1401 + i
+		});
+	}
+	return img;
+}
+
+function drawHibiscus() {
+	const img = canvas();
+	const pts = stemPath(124, 0.32, 4.8);
+	leafOnStem(img, pts, { y: 166, side: -1, angle: 0.74, len: 28, width: 10, opts: { veins: 4, serrate: 1, seed: 1511 } });
+	leafOnStem(img, pts, { y: 198, side: 1, angle: 0.68, len: 24, width: 9, opts: { veins: 3, serrate: 1, seed: 1512 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 80;
+	const R = 45;
+	const rand = rng(1501);
+
+	// five broad, slightly overlapping petals
+	for (let i = 0; i < 5; i++) {
+		const a = -Math.PI / 2 + (i / 5) * Math.PI * 2;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.44,
+			cy: cy + Math.sin(a) * R * 0.4,
+			rx: R * 0.64,
+			ry: R * 0.52,
+			rot: a + Math.PI / 2,
+			power: 1.5,
+			ramp: i % 2 === 0 ? P.hibiscus : P.camellia,
+			trimPx: 1.3,
+			trimMul: 0.46,
+			baseShade: 0.3,
+			sheen: 0.16,
+			veins: 5,
+			veinStrength: 0.1,
+			seed: 1520 + i
+		});
+		// paler flare toward each petal's outer edge
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.8,
+			cy: cy + Math.sin(a) * R * 0.72,
+			rx: R * 0.24,
+			ry: R * 0.2,
+			rot: a,
+			ramp: P.hibiscusPale,
+			alpha: 0.4,
+			trimPx: 0,
+			dither: 0.5,
+			seed: 1530 + i
+		});
+	}
+
+	// wine-dark throat
+	petal(img, { cx, cy: cy + 2, rx: R * 0.26, ry: R * 0.22, ramp: P.hibiscusThroat, alpha: 0.72, trimPx: 0, dither: 0.6, seed: 1540 });
+
+	// staminal column arching out of the throat
+	stroke(
+		img,
+		[
+			[cx, cy + 2],
+			[cx + 1, cy - 12],
+			[cx + 3, cy - 26],
+			[cx + 5, cy - 36]
+		],
+		{ width: 2.6, widthEnd: 1.5, ramp: P.hibiscusPale, seed: 1550, shade: 1.06, highlight: 0.4 }
+	);
+	// anthers clustered along the upper half of the column
+	for (let i = 0; i < 16; i++) {
+		const t = 0.36 + (i / 15) * 0.6;
+		const ex = cx + 1 + 4 * t;
+		const ey = cy - 12 - t * 24;
+		const a = (rand() - 0.5) * 2.4;
+		stroke(
+			img,
+			[
+				[ex, ey],
+				[ex + Math.cos(a) * 3.4, ey + Math.sin(a) * 2.6 - 1]
+			],
+			{ width: 0.7, widthEnd: 0.5, ramp: P.pollen, seed: 1560 + i }
+		);
+		petal(img, {
+			cx: ex + Math.cos(a) * 3.8,
+			cy: ey + Math.sin(a) * 3 - 1,
+			rx: 1.7,
+			ry: 1.2,
+			rot: a,
+			ramp: P.gold,
+			trimPx: 0.3,
+			seed: 1570 + i
+		});
+	}
+	// five stigma pads at the tip of the column
+	for (let i = 0; i < 5; i++) {
+		const a = (i / 5) * Math.PI * 2;
+		petal(img, {
+			cx: cx + 5 + Math.cos(a) * 2.4,
+			cy: cy - 37 + Math.sin(a) * 1.9,
+			rx: 2,
+			ry: 1.5,
+			rot: a,
+			ramp: P.camelliaDeep,
+			trimPx: 0.3,
+			seed: 1580 + i
+		});
+	}
+	return img;
+}
+
+function drawWisteria() {
+	const img = canvas();
+	const topY = 24;
+	const spine = [];
+	for (let i = 0; i <= 10; i++) {
+		const t = i / 10;
+		spine.push([CX - 2 + Math.sin(t * 2.2) * 5, topY + (BASE - topY) * t]);
+	}
+	spine.topY = topY;
+	spine.width = 3.2;
+	stroke(img, spine, { width: 3.2, widthEnd: 4.6, ramp: P.stem, seed: 1601, highlight: 0.5 });
+
+	leafOnStem(img, spine, { y: 172, side: -1, angle: 0.7, len: 24, width: 8, opts: { veins: 4, seed: 1602 } });
+	leafOnStem(img, spine, { y: 204, side: 1, angle: 0.64, len: 21, width: 7, opts: { veins: 3, seed: 1603 } });
+
+	// three racemes of pea florets hanging from short spurs
+	const racemes = [
+		{ x: CX - 17, top: 58, len: 74, seed: 1610 },
+		{ x: CX + 1, top: 36, len: 96, seed: 1620 },
+		{ x: CX + 18, top: 64, len: 66, seed: 1630 }
+	];
+	for (const [ri, r] of racemes.entries()) {
+		const rand = rng(r.seed);
+		stroke(
+			img,
+			[
+				[r.x - 2, r.top - 10],
+				[r.x, r.top + 4],
+				[r.x + 4, r.top + r.len * 0.55],
+				[r.x + 2, r.top + r.len]
+			],
+			{ width: 1.8, widthEnd: 1, ramp: P.stemDeep, seed: r.seed + 1 }
+		);
+
+		const rows = 14;
+		for (let j = 0; j < rows; j++) {
+			const t = j / (rows - 1);
+			const y = r.top + t * r.len;
+			const x = r.x + 4 * Math.sin(t * 2.1);
+			const spread = 9.5 - 5 * t;
+			const ramp = t < 0.3 ? P.wisteria : t > 0.62 ? P.wisteriaPale : P.wisteria;
+
+			// the wing petals fan either side, the keel tucks underneath
+			for (let k = 0; k < 3; k++) {
+				const a = (k / 3) * Math.PI * 2 + rand() * 0.5;
+				petal(img, {
+					cx: x + Math.cos(a) * spread * 0.5,
+					cy: y + 1.6 + Math.sin(a) * spread * 0.44,
+					rx: 5.4 - 2.4 * t,
+					ry: 4.3 - 1.9 * t,
+					rot: a,
+					power: 1.55,
+					ramp,
+					trimPx: 0.5,
+					trimMul: 0.62,
+					baseShade: 0.18,
+					sheen: 0.1,
+					seed: r.seed + 10 + j * 4 + k
+				});
+			}
+			// pale banner petal on top of each floret
+			petal(img, {
+				cx: x,
+				cy: y + 2.6,
+				rx: 3.6 - 1.5 * t,
+				ry: 2.4 - 1 * t,
+				ramp: P.wisteriaPale,
+				alpha: 0.9,
+				trimPx: 0.3,
+				seed: r.seed + 11 + j * 4
+			});
+		}
+
+		// softer, unopened buds at the very tip
+		for (let k = 0; k < 3; k++) {
+			petal(img, {
+				cx: r.x + 2 + (k - 1) * 2.4,
+				cy: r.top + r.len + 3 + k * 2.6,
+				rx: 2.4,
+				ry: 3.1,
+				rot: (k - 1) * 0.3,
+				ramp: P.wisteriaPale,
+				trimPx: 0.5,
+				trimMul: 0.66,
+				seed: r.seed + 90 + k
+			});
+		}
+	}
+	return img;
+}
+
+function drawMagnolia() {
+	const img = canvas();
+	const pts = stemPath(134, 0.26, 5.4);
+	leafOnStem(img, pts, { y: 172, side: -1, angle: 0.66, len: 30, width: 11, opts: { veins: 5, seed: 1711 } });
+	leafOnStem(img, pts, { y: 204, side: 1, angle: 0.6, len: 26, width: 10, opts: { veins: 4, seed: 1712 } });
+	drawStem(img, pts);
+	const cx = CX;
+	const cy = 72;
+	const R = 48;
+	const rand = rng(1701);
+
+	// fuzzy calyx peeking under the cup
+	petal(img, { cx, cy: cy + R * 0.62, rx: 12, ry: 5, ramp: P.magnoliaDeep, trimPx: 0.8, trimMul: 0.6, seed: 1705 });
+
+	// three outer tepals splayed wide, blush toward the tips
+	for (let i = 0; i < 3; i++) {
+		const a = Math.PI / 2 + (i - 1) * 1.16;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.5,
+			cy: cy + R * 0.16 + Math.sin(a) * R * 0.34,
+			rx: R * 0.72,
+			ry: R * 0.3,
+			rot: a,
+			power: 1.6,
+			ramp: P.magnoliaBlush,
+			trimPx: 1.3,
+			trimMul: 0.5,
+			baseShade: 0.26,
+			sheen: 0.14,
+			veins: 4,
+			veinStrength: 0.08,
+			seed: 1720 + i
+		});
+		// creamy inner half of the same tepal
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.3,
+			cy: cy + R * 0.18 + Math.sin(a) * R * 0.22,
+			rx: R * 0.44,
+			ry: R * 0.22,
+			rot: a,
+			power: 1.7,
+			ramp: P.magnolia,
+			alpha: 0.72,
+			trimPx: 0,
+			dither: 0.5,
+			seed: 1730 + i
+		});
+	}
+
+	// three tall inner tepals forming the cup
+	for (let i = 0; i < 3; i++) {
+		const a = -Math.PI / 2 + (i - 1) * 0.58;
+		petal(img, {
+			cx: cx + Math.cos(a) * R * 0.26,
+			cy: cy - 2 + Math.sin(a) * R * 0.3,
+			rx: R * 0.62,
+			ry: R * 0.3,
+			rot: a,
+			power: 1.9,
+			ramp: P.magnolia,
+			trimPx: 1.2,
+			trimMul: 0.52,
+			baseShade: 0.24,
+			sheen: 0.18,
+			insideWarm: 0.14,
+			veins: 3,
+			veinStrength: 0.06,
+			seed: 1740 + i
+		});
+	}
+
+	// the cone of stamens in the middle
+	petal(img, { cx, cy: cy + 5, rx: R * 0.17, ry: R * 0.14, ramp: P.magnoliaDeep, alpha: 0.5, trimPx: 0, dither: 0.5, seed: 1750 });
+	for (let i = 0; i < 26; i++) {
+		const a = rand() * Math.PI * 2;
+		const rr = Math.sqrt(rand()) * R * 0.2;
+		petal(img, {
+			cx: cx + Math.cos(a) * rr,
+			cy: cy + 4 + Math.sin(a) * rr * 0.85,
+			rx: 1.6,
+			ry: 1.2,
+			rot: a,
+			ramp: i % 4 === 0 ? P.anther : P.gold,
+			trimPx: 0.3,
+			seed: 1760 + i
+		});
+	}
+	return img;
+}
+
 /* ------------------------------------------------------------- decorative */
 
 function drawOrchid() {
@@ -2526,7 +3174,15 @@ const flowers = [
 	['anggrek', drawOrchid()],
 	['iris', drawIris()],
 	['lavender', drawLavender()],
-	['eukaliptus', drawEucalyptus()]
+	['eukaliptus', drawEucalyptus()],
+	['hydrangea', drawHydrangea()],
+	['camellia', drawCamellia()],
+	['dahlia', drawDahlia()],
+	['poppy', drawPoppy()],
+	['marigold', drawMarigold()],
+	['hibiscus', drawHibiscus()],
+	['wisteria', drawWisteria()],
+	['magnolia', drawMagnolia()]
 ];
 
 console.log('Rendering Petalbit art…');

@@ -124,6 +124,86 @@ export const FLOWERS: Flower[] = [
 		tone: 'greenery',
 		maxPerBouquet: 4,
 		available: true
+	},
+	{
+		id: 'hydrangea',
+		name: 'Hydrangea',
+		latin: 'Hydrangea',
+		description: 'One big cloud of tiny blooms. Gratitude that shows up in clusters.',
+		image: '/art/flowers/hydrangea.png',
+		tone: 'dreamy',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'camellia',
+		name: 'Camellia',
+		latin: 'Camellia japonica',
+		description: 'Glossy, round, quietly devoted. For love that keeps showing up.',
+		image: '/art/flowers/camellia.png',
+		tone: 'devoted',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'dahlia',
+		name: 'Dahlia',
+		latin: 'Dahlia',
+		description: 'All those pointed layers for someone who refuses to be basic.',
+		image: '/art/flowers/dahlia.png',
+		tone: 'dramatic',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'poppy',
+		name: 'Poppy',
+		latin: 'Papaver',
+		description: 'Papery red petals and a dark heart. Loud, soft, a little reckless.',
+		image: '/art/flowers/poppy.png',
+		tone: 'fiery',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'marigold',
+		name: 'Marigold',
+		latin: 'Tagetes',
+		description: 'Sunny and stubborn, the flower that keeps the good luck close.',
+		image: '/art/flowers/marigold.png',
+		tone: 'cosy',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'hibiscus',
+		name: 'Hibiscus',
+		latin: 'Hibiscus rosa-sinensis',
+		description: 'Tropical, undeniable, with a long reach. Delicate beauty, zero subtlety.',
+		image: '/art/flowers/hibiscus.png',
+		tone: 'tropical',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'wisteria',
+		name: 'Wisteria',
+		latin: 'Wisteria',
+		description: 'Hanging lilac drifts. Tender, patient, and a little bit romantic.',
+		image: '/art/flowers/wisteria.png',
+		tone: 'tender',
+		maxPerBouquet: 4,
+		available: true
+	},
+	{
+		id: 'magnolia',
+		name: 'Magnolia',
+		latin: 'Magnolia grandiflora',
+		description: 'Creamy petals wide open. Dignity, warmth, and a fresh start.',
+		image: '/art/flowers/magnolia.png',
+		tone: 'graceful',
+		maxPerBouquet: 4,
+		available: true
 	}
 ];
 
